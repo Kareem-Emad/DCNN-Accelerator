@@ -47,8 +47,8 @@ begin
     begin
 	b(3 downto 0) <= "1111";
 	a(3 downto 0) <= "1001";
-    wait for period;
- 	wait for period;
+        wait for period;
+ 	--wait for period;
 
 	enable <= '1';
  	wait for period;

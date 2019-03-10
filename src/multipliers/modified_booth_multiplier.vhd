@@ -43,14 +43,18 @@ begin
             positive_M(15 downto 0) <= M;
             positive_M(31 downto 16) <= (OTHERS=>'0');
 
-            negative_M <= -positive_M;
+ 	    negative_M <=  -("0000000000000000"&M);
+           --negative_M(31 downto 16) <= (OTHERS=>'0');
+            
 
             positive_2M(16 downto 0) <= M&'0';
             positive_2M(31 downto 17) <= (OTHERS=>'0');
 
-            negative_2M <= -positive_2M;
+            negative_2M <= -("000000000000000"&M&'0');
+            --negative_2M(31 downto 17) <= (OTHERS=>'0');
 
             aux_product <= (OTHERS=>'0');
+	    product <= aux_product; 
 
             shifting_R(16 downto 0) <= R&'0';
             shifting_R(31 downto 17) <= (OTHERS=>'0');
