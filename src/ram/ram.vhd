@@ -4,19 +4,15 @@ use ieee.numeric_std.all;
 library work;
 
 entity Ram is
-	generic ( 
-		N : integer := 16;  -- data precisionn
-		M : integer := 16   -- address precision
-	); 
 	port (
 		clk, read_in, write_out : in std_logic;
-		address                 : in std_logic_vector(M - 1 downto 0);
-		data_in                 : in std_logic_vector(N - 1 downto 0);
-		data_out                : out std_logic_vector(N - 1 downto 0));
+		address                 : in std_logic_vector(7 downto 0); -- 256 addresses.
+		data_in                 : in std_logic_vector(15 downto 0);
+		data_out                : out std_logic_vector(15 downto 0));
 end entity Ram;
 
 architecture Behavioral of Ram is
-	type ram_type is array (0 to (2**M)-1) of std_logic_vector(N-1 downto 0);
+	type ram_type is array (0 to 255) of std_logic_vector(15 downto 0);
     signal ram : ram_type := (
 		--R0=0,...,R5=5
 		0 => X"0000",
@@ -33,5 +29,5 @@ architecture Behavioral of Ram is
 					end if;
 				end if;
 		end process;
-		data_out <= ram(to_integer(unsigned(address))) when (write_out = '1') else (others => 'Z');
+		data_out <= ram(to_integer(unsigned(address))) when (write_out = '1') else (15 downto 0 => 'Z');
 end Behavioral;
