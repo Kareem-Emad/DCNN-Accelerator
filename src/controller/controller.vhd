@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library work;
 
-entity control_unit is
+entity Controller is
     generic (
         N : natural := 16;  -- precision of the data
         M : natural := 16  -- size of the address bus
@@ -19,9 +19,9 @@ entity control_unit is
         mem_read        :   out std_logic;
         filter_data     :   out std_logic_vector(N-1 downto 0)
     );
-end control_unit;
+end Controller;
 
-architecture mixed of control_unit is
+architecture Mixed of Controller is
     type state_type is (
         init_filter_window,
         init_image_cache,
@@ -70,4 +70,4 @@ begin
             current_state <= next_state;
         end if;
     end process;
-end mixed;
+end Mixed;

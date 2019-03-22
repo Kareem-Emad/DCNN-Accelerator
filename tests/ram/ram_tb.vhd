@@ -2,17 +2,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 library work;
 
-entity ram_tb is
-end ram_tb;
+entity RamTB is
+end RamTB;
 
-architecture tb of ram_tb is
+architecture TB of RamTB is
     signal clk, read_in, write_out : std_logic := '0';
     signal address : std_logic_vector(3 downto 0) := (others => 'Z');
     signal data_in, data_out : std_logic_vector(15 downto 0) := (others => 'Z');
     constant period : time := 1 ns;
 
 begin
-    ram_inst : entity work.ram
+    ram_inst : entity work.Ram
         generic map (
             N => 16,
             M => 4
@@ -51,4 +51,4 @@ begin
         clk <= '1';
         wait for period / 2;
     end process;
-end tb;
+end TB;

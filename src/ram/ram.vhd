@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library work;
 
-entity ram is
+entity Ram is
 	generic ( 
 		N : integer := 16;  -- data precisionn
 		M : integer := 16   -- address precision
@@ -13,9 +13,9 @@ entity ram is
 		address                 : in std_logic_vector(M - 1 downto 0);
 		data_in                 : in std_logic_vector(N - 1 downto 0);
 		data_out                : out std_logic_vector(N - 1 downto 0));
-end entity ram;
+end entity Ram;
 
-architecture mixed_ram of ram is
+architecture Behavioral of Ram is
 	type ram_type is array (0 to (2**M)-1) of std_logic_vector(N-1 downto 0);
     signal ram : ram_type := (
 		--R0=0,...,R5=5
@@ -34,4 +34,4 @@ architecture mixed_ram of ram is
 				end if;
 		end process;
 		data_out <= ram(to_integer(unsigned(address))) when (write_out = '1') else (others => 'Z');
-end mixed_ram;
+end Behavioral;
