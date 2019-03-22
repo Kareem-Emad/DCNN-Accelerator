@@ -1,10 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+library work;
 
 entity control_unit is
     generic (
-        N : natural := 16  -- precision of the data
+        N : natural := 16;  -- precision of the data
         M : natural := 16  -- size of the address bus
     );
     port (
@@ -16,7 +17,7 @@ entity control_unit is
         mem_addr        :   out std_logic_vector(M - 1 downto 0);
         mem_write       :   out std_logic;
         mem_read        :   out std_logic;
-        filter_data     :   out std_logic_vector(N-1 downto 0);
+        filter_data     :   out std_logic_vector(N-1 downto 0)
     );
 end control_unit;
 
@@ -31,11 +32,11 @@ architecture mixed of control_unit is
         argmax_computation,
         write_classification,
         end_state
-    )
+    );
     signal current_state : state_type := init_filter_window;
     signal next_state : state_type := init_image_cache;
 
-
+begin
     -- This process computes the next state given the current state and the inputs.
     comp_ns : process(current_state)
     begin

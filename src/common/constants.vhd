@@ -5,5 +5,4 @@ use ieee.numeric_std.all;
 package p_constants is
     constant MEM_Addr_NBits     : integer   := 16;
     constant MEM_Weights_Addr   : integer   := 1000;
-
 end package;
