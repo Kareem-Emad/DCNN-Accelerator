@@ -40,25 +40,26 @@ begin
     -- This process computes the next state given the current state and the inputs.
     comp_ns : process(current_state)
     begin
-        if current_state = init_filter_window then
+        case current_state is
+            when init_filter_window =>
+            
+            when init_image_cache =>
 
-        elsif current_state = init_image_cache then
+            when start_convolution =>
 
-        elsif current_state = start_convolution then
-        
-        elsif current_state = fetch_to_cache then
+            when fetch_to_cache =>
 
-        elsif current_state = fetch_to_image_window then
+            when fetch_to_image_window =>
 
-        elsif current_state = write_to_memory then
+            when write_to_memory =>
 
-        elsif current_state = argmax_computation then
+            when argmax_computation =>
 
-        elsif current_state = write_classification then
+            when write_classification =>
 
-        elsif current_state = end_state then
-            next_state <= next_state;
-        end if;
+            when end_state =>
+                next_state <= current_state;
+            end case;
     end process;
 
     
