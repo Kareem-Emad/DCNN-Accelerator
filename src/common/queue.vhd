@@ -26,35 +26,42 @@ entity Queue is
 end Queue;
 
 architecture Dataflow of Queue is
-component Reg is
-    generic(n : natural := 16);
-    port(
-        d : in std_logic_vector(n-1 downto 0) := (others => '0');
-        q : out std_logic_vector(n-1 downto 0);
-        clk, load, reset : in std_logic := '0'
-    );
-end component;
+	component Reg is
+    		generic(n : natural := 16); -- number of bits
+
+    		port(
+        		d  : in std_logic_vector(n-1 downto 0) := (others => '0'); -- parallel input
+        		q  : out std_logic_vector(n-1 downto 0) := (others => '0'); -- parallel output
+			rst_data: std_logic_vector(n-1 downto 0) := (others => '0'); -- data to reset to
+        		clk, load, reset : in std_logic := '0' -- clock, load, and reset
+    		);
+	end component;
 
 type vector_array is array(0 to cap-1) of std_logic_vector(n_word-1 downto 0);
 signal d_arr : vector_array;
 signal q_arr : vector_array;
 begin
-    d_arr(0) <= input_word;
-    reg0: Reg
+	d_arr(0) <= input_word;
+
+    	reg0: Reg
         generic map(n_word)
         port map(
-            d_arr(0),
-            q_arr(0),
-            clk, load, reset
+        	d_arr(0),
+            	q_arr(0),
+		        (others => '0'),
+            	clk, load, reset
         );
-    parallel_out(n_word-1 downto 0) <= q_arr(0);
-    gen_regs: for i in 1 to cap-1 generate
+
+    	parallel_out(n_word-1 downto 0) <= q_arr(0);
+
+    	gen_regs: for i in 1 to cap-1 generate
         d_arr(i) <= q_arr(i-1);     
         regi: Reg
             generic map(n_word)
             port map(
                 d_arr(i),
                 q_arr(i),
+		        (others => '0'),
                 clk, load, reset
             );
         parallel_out((i+1)*n_word-1 downto i*n_word) <= q_arr(i);
