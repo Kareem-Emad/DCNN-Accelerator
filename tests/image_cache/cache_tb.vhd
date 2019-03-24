@@ -2,26 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity tb_Cache is
-end tb_Cache;
+entity CacheTB is
+end CacheTB;
 
-architecture tb of tb_Cache is
+architecture TB of CacheTB is
 
     constant n_word : integer := 16;
     constant cap : integer := 5;
     constant num_queues : integer := 28;
     constant sel : integer := 5;
-
-
-    component Cache
-        port (in_word        : in std_logic_vector (n_word-1 downto 0) := (others => '0');
-              cache_in_sel   : in std_logic_vector (sel-1 downto 0) := (others => '0');
-              cache_out_sel  : in std_logic_vector (sel-1 downto 0) := (others => '0');
-              decoder_enable : in std_logic;
-              out_column     : out std_logic_vector (n_word*cap-1 downto 0) := (others => '0');
-              clk            : in std_logic;
-              reset          : in std_logic);
-    end component;
 
     signal in_word        : std_logic_vector (n_word-1 downto 0) := (others => '0');
     signal cache_in_sel   : std_logic_vector (sel-1 downto 0) := (others => '0');
@@ -34,14 +23,22 @@ architecture tb of tb_Cache is
 
 begin
 
-    dut : Cache generic map(cap,n_word,num_queues,sel)
-    port map (in_word        => in_word,
-              cache_in_sel   => cache_in_sel,
-              cache_out_sel  => cache_out_sel,
-              decoder_enable => decoder_enable,
-              out_column     => out_column,
-              clk            => clk,
-              reset          => reset);
+    dut : entity work.Cache 
+    generic map(
+        cap => cap,
+        n_word => n_word,
+        num_queues => num_queues,
+        sel => sel
+    )
+    port map (
+        in_word        => in_word,
+        cache_in_sel   => cache_in_sel,
+        cache_out_sel  => cache_out_sel,
+        decoder_enable => decoder_enable,
+        out_column     => out_column,
+        clk            => clk,
+        reset          => reset
+    );
 
     stimuli : process
     begin
@@ -69,11 +66,9 @@ begin
             ASSERT(out_column=result) ;
 
         end loop;
-
         
-      	
         WAIT;
 
     end process;
 
-end tb;
+end TB;
