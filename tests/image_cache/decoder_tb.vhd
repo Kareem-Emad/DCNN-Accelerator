@@ -5,29 +5,17 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 
-entity tb_Decoder is
-end tb_Decoder;
+entity DecoderTB is
+end DecoderTB;
 
-architecture tb of tb_Decoder is
-
-    component Decoder is
-        generic ( 
-            Nsel : natural;
-            Nout : natural );
-        port (
-            enable : in std_logic;
-            A : in std_logic_vector(Nsel-1 downto 0);
-            F : out std_logic_vector(Nout-1 downto 0));
-    end component;
-
+architecture TB of DecoderTB is
     signal enable : std_logic;
     signal A      : std_logic_vector (4 downto 0);
     signal F      : std_logic_vector (27 downto 0);
     signal result: std_logic_vector (27 downto 0);
 
 begin
-
-    dut : Decoder generic map (5,28)
+    dut : entity work.Decoder generic map (5,28)
     port map (enable => enable,
               A      => A,
               F      => F);
@@ -46,4 +34,4 @@ begin
 
     end process;
 
-end tb;
+end TB;

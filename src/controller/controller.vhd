@@ -14,14 +14,14 @@ entity Controller is
     );
     port (
         clk             :   in  std_logic;
-        io_ready        :   in  std_logic;
-        io_done         :   out std_logic := 'Z';
+        io_ready_in     :   in  std_logic;
+        io_done_out     :   out std_logic;
         mem_data_in     :   in  std_logic_vector(N - 1 downto 0);
         mem_data_out    :   out std_logic_vector(N - 1 downto 0);
-        mem_addr        :   out std_logic_vector(M - 1 downto 0);
-        mem_write       :   out std_logic;
-        mem_read        :   out std_logic;
-        filter_data     :   out std_logic_vector(N-1 downto 0)
+        mem_addr_out    :   out std_logic_vector(M - 1 downto 0);
+        mem_write_out   :   out std_logic;
+        mem_read_out    :   out std_logic;
+        filter_data_out :   out std_logic_vector(N-1 downto 0)
     );
 end Controller;
 
