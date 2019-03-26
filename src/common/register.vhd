@@ -10,7 +10,7 @@ entity Register is
         load_in : in std_logic; -- load in data.
         q_out   : out std_logic_vector(N - 1 downto 0) := (others => '0'); -- parallel output
         clk     : in std_logic; -- clock
-        reset   : in std_logic; -- reset
+        reset   : in std_logic -- reset
     );
 end Register;
 
