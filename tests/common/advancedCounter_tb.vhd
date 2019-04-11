@@ -2,45 +2,43 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity tb_AdvancedCounter is
-end tb_AdvancedCounter;
+entity AdvancedCounterTB is
+end AdvancedCounterTB;
 
-architecture tb of tb_AdvancedCounter is
+architecture TB of AdvancedCounterTB is
 
-    constant N: integer :=3;
+    constant N: integer := 4;
 
  
 
     signal clk         : std_logic;
-    signal rst         : std_logic;
+    signal reset         : std_logic;
     signal en          : std_logic;
     signal mode        : std_logic_vector (1 downto 0);
-    signal max_val     : std_logic_vector (n downto 0);
+    signal max_val     : std_logic_vector (n-1 downto 0);
     signal max_reached : std_logic;
-    signal counter_out : std_logic_vector (n downto 0);
+    signal counter_out : std_logic_vector (n-1 downto 0);
 
 begin
 
     dut : entity work.AdvancedCounter generic map(N=>N)
-    port map (clk         => clk,
-              rst         => rst,
-              en          => en,
-              mode        => mode,
-              max_val     => max_val,
-              max_reached => max_reached,
-              counter_out => counter_out);
+    port map (clk               => clk,
+              reset             => reset,
+              enable            => en,
+              mode_in           => mode,
+              max_val_in        => max_val,
+              max_reached_out   => max_reached,
+              counter_out       => counter_out);
 
     stimuli : process
     begin
-        
-      
         clk <= '0';
         mode <= "00";
         en<='1';
         max_val <= "0101";
-        rst <= '1';
+        reset <= '1';
         wait for 10 ps;
-        rst<= '0';
+        reset<= '0';
 
         for i in 0 to 4 loop
             clk<='0';
@@ -50,9 +48,9 @@ begin
         end loop;
         Assert(counter_out=max_val and max_reached='1');
 
-        rst <= '1';
+        reset <= '1';
         wait for 10 ps;
-        rst<= '0';
+        reset<= '0';
         Assert(max_reached='0');
 
         mode<="01";
@@ -87,8 +85,8 @@ begin
         end loop;
         Assert(counter_out=max_val and max_reached='1');
 
-    
+
         wait;
     end process;
 
-end tb;
+end TB;
