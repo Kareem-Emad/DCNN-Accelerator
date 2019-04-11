@@ -1,5 +1,6 @@
 library ieee;
 library dcnn;
+use dcnn.config.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
@@ -7,12 +8,11 @@ entity QueueTest is
 end QueueTest;
 
 architecture Test of QueueTest is
-constant n_word : integer := 16;
 constant cap : integer := 5;
 constant period : time := 100 ps;
 signal clk, reset, load : std_logic := '0';
 signal input_word : std_logic_vector(n_word-1 downto 0);
-signal result : std_logic_vector(n_word*cap-1 downto 0);
+signal result : wordarr_t(cap-1 downto 0);
 begin
     process is
         begin
@@ -30,14 +30,14 @@ begin
             input_word <= std_logic_vector(to_unsigned(tmp-i, n_word));
             wait for period;
             for j in 0 to i loop
-                assert result(n_word*(j+1)-1 downto n_word*j) = 
+                assert result(j) = 
                     std_logic_vector(to_unsigned(tmp-i+j, n_word));
             end loop;
         end loop;
     end process;
 
     gen_queue: entity dcnn.Queue    
-        generic map(cap, n_word) 
+        generic map(cap) 
         port map(
             input_word, result, clk, load, reset
         );
