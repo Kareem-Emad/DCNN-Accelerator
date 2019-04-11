@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 entity Counter is -- NOTE: Counter VALUE SHOULD BE RESET ON THE OUTSIDE FOR COMPUTATIONAL REASONS
     generic (
-        N : natural := 16 --to be set otherwise
+        N : natural := 5 --to be set otherwise
     );
     port (
         clk             : in std_logic;
@@ -22,21 +22,23 @@ architecture behavioural of Counter is
     signal counter_data : unsigned(N-1 downto 0) := (others => '0');
     signal counter_data_v : std_logic_vector (N-1 downto 0);
 begin
-    process(clk, reset, mode_in)
+    process(clk, reset, mode_in, enable)
     begin
         if reset = '1' then
             counter_data <= (others => '0');
-        elsif rising_edge(clk) and enable = '1' then  
-            if mode_in = '0' then 
-                counter_data <= counter_data + 1;
-            else
-                counter_data <= counter_data - 1;
+        elsif rising_edge(clk) then  
+            if enable = '1' then
+                if mode_in = '0' then 
+                    counter_data <= counter_data + 1;
+                else
+                    counter_data <= counter_data - 1;
+                end if;
             end if;
         end if;
     end process;
 
     counter_data_v <= std_logic_vector(counter_data);
-    counter_out <= counter_data_v;
+    counter_out <= counter_data_v when enable = '1' else (others => '0');
     max_reached_out <= '1' when counter_data_v = max_val_in else '0';
 end behavioural;
   

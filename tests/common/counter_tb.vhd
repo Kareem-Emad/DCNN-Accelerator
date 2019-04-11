@@ -2,12 +2,14 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use IEEE.std_logic_unsigned.all;
 
 entity CounterTB is
 end CounterTB;
 
 architecture TB of CounterTB is
-    constant n: integer := 4;
+    constant n: integer := 5;
     signal clk         : std_logic;
     signal rst         : std_logic;
     signal en          : std_logic;
@@ -19,9 +21,6 @@ architecture TB of CounterTB is
     
 begin
     counter_inst : entity work.Counter 
-    generic map(
-        N=>n
-    )
     port map (clk               => clk,
               reset             => rst,
               enable            => en,
@@ -34,7 +33,7 @@ begin
     stimuli : process
     begin
         mode <= '0';
-        max_val <= "0101";
+        max_val <= "00101";
         en<='1';
         rst <= '1';
         wait for period;
@@ -47,10 +46,10 @@ begin
         rst<= '0';
         Assert(max_reached='0');
 
-        mode<='1';
-        max_val <= "0000";
+        mode <= '1';
+        max_val <= (others => '0');
         wait for 16 * period;
-        Assert (counter_out="0000" and max_reached='1') report "Counting down from 16 to 0 failed!";
+        Assert (counter_out = X"0000" and max_reached='1') report "Counting down from 16 to 0 failed!";
         wait for period;
     end process;
 

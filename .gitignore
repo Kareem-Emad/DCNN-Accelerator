@@ -35,5 +35,8 @@ sc_dpiheader.h
 vsim.dbg
 *.mpf
 
-# Leonardo
+### LeonardoSpectrum ###
 leospec.*
+
+### General ###
+*.bak
