@@ -1,19 +1,22 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
---Compares 2 n bit signed operands
-entity NComparator is
-	generic(N : natural := 16); --Generic input to specifiy the input size
-	
+--Compares 2 n bit signed operands and outputs the index of max along with the max
+entity Comparator is
+	generic(N: natural := 16); --Input size
+		
 	port(
-		in0 : in std_logic_vector(N-1 downto 0);  --First operand
-		in1 : in std_logic_vector(N-1 downto 0);  --Second operand
-		en  : in std_logic := '0';                --Enable signal
-		ot  : out std_logic_vector(N-1 downto 0)  --Output = max(in0, in1)
+		in0  : in std_logic_vector(N-1 downto 0);       --First operand
+		in1  : in std_logic_vector(N-1 downto 0);       --Second operand
+		idx0 : in std_logic_vector(3 downto 0);         --Index of the first operand
+		idx1 : in std_logic_vector(3 downto 0);         --Index of the second operand
+		en   : in std_logic := '0';                     --Enable signal
+		otVal: out std_logic_vector(N-1 downto 0);      --Output = max(in0, in1)
+		otIdx: out std_logic_vector(3 downto 0) --Output = idx of max(in0, in1)
 	);
-end entity NComparator;
+end entity Comparator;
 
-architecture DataFlow of NComparator is
+architecture DataFlow of Comparator is
 	component NAdder
 		generic(N : natural := 16); --Generic input to specifiy the Adder's size
 
@@ -58,11 +61,17 @@ architecture DataFlow of NComparator is
 	--Holds the carry out of the subtraction step [sign indicator]
 	signal carry_out: std_logic;
 	
-	--Temporarily holds the output of the MUX
-	signal tmp_ot_mux: std_logic_vector(N-1 downto 0);
+	--Temporarily holds the output of the value MUX
+	signal tmp_ot_mux_val: std_logic_vector(N-1 downto 0);
 	
-	--Temporary result [Checks in case comparing +ve and -ve resulted in an overflow]
-	signal tmp_ot: std_logic_vector(N-1 downto 0);
+	--Temporarily holds the output of the index MUX
+	signal tmp_ot_mux_idx: std_logic_vector(3 downto 0);
+
+	--Temporary result (val) [Checks in case comparing +ve and -ve resulted in an overflow]
+	signal tmp_ot_val: std_logic_vector(N-1 downto 0);
+
+	--Temporary result (idx) [Checks in case comparing +ve and -ve resulted in an overflow]
+	signal tmp_ot_idx: std_logic_vector(3 downto 0);
 
 begin
 	--Get the 1's complement of in1
@@ -74,14 +83,23 @@ begin
 	--Select max(in0, in1) based on the sign bit
 	--If sign bit = 0, sub_res is +ve and in0>=in1
 	--Else, sub_res is -ve and in1>in0
-	SelectGreater: NMUX generic map(N) port map(in0, in1, sub_res(N-1), en, tmp_ot_mux);
-	
+	SelectGreater: NMUX generic map(N) port map(in0, in1, sub_res(N-1), en, tmp_ot_mux_val);
+	SelectIndex  : NMUX generic map(4) port map(idx0, idx1, sub_res(N-1), en, tmp_ot_mux_idx); 
+
 	--Checks if operands have opposite signs. In this case the +ve is automatically greater.
 	--This check is important in case subtraction opposite sign operands results in overflow.
-	tmp_ot <= in0 when in0(N-1) = '0' and in1(N-1) = '1'
+	tmp_ot_val <= in0 when in0(N-1) = '0' and in1(N-1) = '1'
 	else in1 when in1(N-1) = '0' and in0(N-1) = '1'
-	else tmp_ot_mux;
+	else tmp_ot_mux_val;
+
+	tmp_ot_idx <= idx0 when in0(N-1) = '0' and in1(N-1) = '1'
+	else idx1 when in1(N-1) = '0' and in0(N-1) = '1'
+	else tmp_ot_mux_idx;
 	
-	--Assign the comparasion result based on the enable signal
-	ActivateOut: TriState generic map(N) port map(tmp_ot, en, ot);
+	--Assign the value of the comparison result based on the enable signal
+	ActivateVal: TriState generic map(N) port map(tmp_ot_val, en, otVal);
+
+	--Assign the index of the comparison result based on the enable signal
+	ActivateIdx: TriState generic map(4) port map(tmp_ot_idx, en, otIdx);
+	
 end architecture DataFlow;
