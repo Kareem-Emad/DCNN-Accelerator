@@ -5,9 +5,9 @@ library work;
 
 entity Ram is
 	port (
-		clk 										: in std_logic; -- the clock
-		read_in									: in std_logic; -- 
-		write_in 								: in std_logic;
+		clk 					: in std_logic; -- the clock
+		read_in					: in std_logic;
+		write_in 				: in std_logic;
 		address_in              : in std_logic_vector(7 downto 0); -- 256 addresses.
 		data_in                 : in std_logic_vector(15 downto 0);
 		data_out                : out std_logic_vector(15 downto 0));
@@ -27,12 +27,12 @@ architecture Behavioral of Ram is
 		process(clk) is
 			begin
 				if falling_edge(clk) then  
-					if read_in = '1' then
+					if write_in = '1' then
 						ram(to_integer(unsigned(address_in))) <= data_in;
 					end if;
 				end if;
 		end process;
 
 		-- Outputs data asynchronously when the output is applied.
-		data_out <= ram(to_integer(unsigned(address_in))) when (write_in = '1') else (15 downto 0 => '0');
+		data_out <= ram(to_integer(unsigned(address_in))) when (read_in = '1') else (15 downto 0 => '0');
 end Behavioral;

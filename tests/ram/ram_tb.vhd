@@ -24,18 +24,22 @@ begin
     
     process is
     begin
+        wait for period;
+        write_in <= '1';
+        data_in <= X"0123";
+        address <= X"00";
+        read_in <= '1';
+        wait for period;
         write_in <= '0';
-        address <= X"10";
         read_in <= '1';
         data_in <= (others => '1');
         wait for period;
-        read_in <= '0';
-        write_in <= '1';
+        assert (data_out = X"0123") report "R/W failed!";
         wait for period;
-        assert (data_out = (15 downto 0 => '1')) report "R/W to the memory failed!";
+        read_in <= '0';
         write_in <= '0';
         wait for period;
-        assert (data_out = (15 downto 0 => 'Z')) report "The RAM keeps the line busy!";
+        assert (data_out = (15 downto 0 => '0')) report "The RAM keeps the line busy!";
     end process;
 
     process is
