@@ -42,7 +42,14 @@ begin
     begin
         case current_state is
             when init_filter_window =>
-            
+                -- Fetch the filter window; Needs a counter.
+                -- 1: Load Filter Width
+                -- 2: Load Filter Height
+                -- 3: Load Bias
+                -- 4: If FilterWidth=3, Set Imax=9. Else Set Imax=25.
+                -- 5: Loop: for i = 0; i < Imax; i++
+                -- 6:   If Edge: Write 0. 
+                -- 7:   Else: Fetch pixel from current mem loc.
             when init_image_cache =>
 
             when start_convolution =>
