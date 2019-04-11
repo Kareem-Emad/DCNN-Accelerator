@@ -9,6 +9,8 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+library adk;
+use adk.adk_components.all;
 
 entity reg is
    port (

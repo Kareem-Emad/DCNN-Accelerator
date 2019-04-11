@@ -12,9 +12,6 @@ architecture TB of RegTB is
 
 begin
     reg_inst : entity work.Reg
-        generic map (
-            N => 16
-        )
         port map (
             clk => clk,
             reset => reset,
