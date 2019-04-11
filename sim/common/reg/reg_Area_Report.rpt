@@ -1,0 +1,22 @@
+
+*******************************************************
+
+Cell: reg    View: Behavioral    Library: work
+
+*******************************************************
+
+
+ Cell     Library  References     Total Area
+
+dffr      tsmc035_typ    16 x      6     89 gates
+inv02     tsmc035_typ     3 x      1      2 gates
+nand02    tsmc035_typ    48 x      1     48 gates
+
+ Number of ports :                      35
+ Number of nets :                       86
+ Number of instances :                  67
+ Number of references to this view :     0
+
+Total accumulated area : 
+ Number of gates :                     140
+ Number of accumulated instances :      67
