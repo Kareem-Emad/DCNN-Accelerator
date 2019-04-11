@@ -1,0 +1,33 @@
+
+*******************************************************
+
+Cell: AdvancedCounter    View: behavioural    Library: work
+
+*******************************************************
+
+
+ Cell        Library  References     Total Area
+
+aoi22        tsmc035_typ     4 x      1      6 gates
+dffr         tsmc035_typ     5 x      6     28 gates
+inv01        tsmc035_typ     5 x      1      4 gates
+inv02        tsmc035_typ    14 x      1     11 gates
+nand02       tsmc035_typ     8 x      1      8 gates
+nand02_2x    tsmc035_typ     2 x      1      2 gates
+nor02_2x     tsmc035_typ     5 x      1      5 gates
+nor02ii      tsmc035_typ     1 x      1      1 gates
+nor03_2x     tsmc035_typ     1 x      1      1 gates
+oai21        tsmc035_typ     6 x      1      7 gates
+oai22        tsmc035_typ     5 x      1      7 gates
+oai221       tsmc035_typ     1 x      2      2 gates
+oai321       tsmc035_typ     1 x      2      2 gates
+xnor2        tsmc035_typ    12 x      2     23 gates
+
+ Number of ports :                      16
+ Number of nets :                       85
+ Number of instances :                  70
+ Number of references to this view :     0
+
+Total accumulated area : 
+ Number of gates :                     108
+ Number of accumulated instances :      70
