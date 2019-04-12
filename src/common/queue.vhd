@@ -16,7 +16,7 @@ entity Queue is
         -- word to be pushed
         d : in word_t := (others => '0');
         -- parallel output of the whole stored data 
-        q : out wordarr_t(cap-1 downto 0) := (others => (others => '0'));
+        q : out wordarr_t(0 to cap-1) := (others => (others => '0'));
         clk : in std_logic := '0';
         -- pushes d into the queue thus evicting the word #capacity-1
         -- the next clock cycle we get q[0:n_word] = d
@@ -27,8 +27,8 @@ end Queue;
 
 architecture Dataflow of Queue is
 
-signal d_arr : wordarr_t(cap-1 downto 0);
-signal q_arr : wordarr_t(cap-1 downto 0);
+signal d_arr : wordarr_t(0 to cap-1);
+signal q_arr : wordarr_t(0 to cap-1);
 begin
     d_arr(0) <= d;
     reg0: entity dcnn.Reg

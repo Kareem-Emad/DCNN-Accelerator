@@ -15,11 +15,11 @@ use dcnn.config.all;
 
 entity Op9Router is
     port(
-        d_arr : out wordarr_t(8 downto 0);   -- input to operand registers
-        q_arr : in wordarr_t(8 downto 0);    -- output of operand registers
-        a_arr : out wordarr_t(3 downto 0);   -- first operand input to the 4 operators
-        b_arr : out wordarr_t(3 downto 0);   -- second operand input to the 4 operators
-        s_arr : in wordarr_t(3 downto 0)    -- result of the operators
+        d_arr : out wordarr_t(0 to 8);   -- input to operand registers
+        q_arr : in wordarr_t(0 to 8);    -- output of operand registers
+        a_arr : out wordarr_t(0 to 3);   -- first operand input to the 4 operators
+        b_arr : out wordarr_t(0 to 3);   -- second operand input to the 4 operators
+        s_arr : in wordarr_t(0 to 3)    -- result of the operators
     );
 end Op9Router;
 

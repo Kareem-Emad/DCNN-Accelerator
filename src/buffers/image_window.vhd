@@ -14,8 +14,8 @@ use dcnn.config.all;
 
 entity ImageWindow is
 	port(
-		d : in wordarr_t(4 downto 0);
-		q : out wordarr_t(25 downto 0);
+		d : in wordarr_t(0 to 4);
+		q : out wordarr_t(0 to 24);
 		clk : in std_logic := '0';
 		load : in std_logic := '0';
 		reset : in std_logic := '0'
@@ -29,7 +29,7 @@ begin
 			generic map(5)
 			port map(
 				d => d(i),
-				q => q(5*(i + 1)-1 downto 5*i),
+				q => q(5*i to 5*(i + 1)-1),
 				clk => clk,
 				load => load,
 				reset => reset

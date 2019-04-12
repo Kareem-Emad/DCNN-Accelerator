@@ -14,15 +14,15 @@ entity Op7Tree is
         op_type : natural := adder_id
     );
     port(
-        d_arr : out wordarr_t(6 downto 0);
-        q_arr : in wordarr_t(6 downto 0)
+        d_arr : out wordarr_t(0 to 6);
+        q_arr : in wordarr_t(0 to 6)
     );
 end Op7Tree;
 
 architecture Structural of Op7Tree is
-    signal a_arr : wordarr_t(2 downto 0);
-    signal b_arr : wordarr_t(2 downto 0);
-    signal s_arr : wordarr_t(2 downto 0);
+    signal a_arr : wordarr_t(0 to 2);
+    signal b_arr : wordarr_t(0 to 2);
+    signal s_arr : wordarr_t(0 to 2);
     signal dummy : std_logic;
 begin
     router_gen: entity dcnn.Op7Router 

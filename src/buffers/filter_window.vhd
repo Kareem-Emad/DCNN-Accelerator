@@ -6,7 +6,7 @@ use dcnn.config.all;
 entity FilterWindow is
 	port(
 		d : in word_t;
-		q : out wordarr_t(25 downto 0);
+		q : out wordarr_t(0 to 24);
 		clk : in std_logic := '0';
 		load : in std_logic := '0';
 		reset : in std_logic := '0'

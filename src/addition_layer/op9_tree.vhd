@@ -14,15 +14,15 @@ entity Op9Tree is
         op_type : natural := adder_id -- operation type
     );
     port(
-        d_arr : out wordarr_t(8 downto 0);
-        q_arr : in wordarr_t(8 downto 0)
+        d_arr : out wordarr_t(0 to 8);
+        q_arr : in wordarr_t(0 to 8)
     );
 end Op9Tree;
 
 architecture Structural of Op9Tree is
-    signal a_arr : wordarr_t(3 downto 0);
-    signal b_arr : wordarr_t(3 downto 0);    
-    signal s_arr : wordarr_t(3 downto 0);
+    signal a_arr : wordarr_t(0 to 3);
+    signal b_arr : wordarr_t(0 to 3);    
+    signal s_arr : wordarr_t(0 to 3);
     signal dummy : std_logic;
 begin
     router_gen: entity dcnn.Op9Router 

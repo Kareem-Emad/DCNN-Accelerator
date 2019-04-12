@@ -15,12 +15,12 @@ signal input_word : std_logic_vector(n_word-1 downto 0);
 signal result : wordarr_t(cap-1 downto 0);
 begin
     process is
-        begin
+    begin
             clk <= '0';
             wait for period / 2;
             clk <= '1';
             wait for period / 2;
-        end process;
+    end process;
 
     process is
         variable tmp: integer := 16#F0F0#;
