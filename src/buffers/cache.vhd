@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library dcnn;
+use dcnn.config.all;
 
 -------------------------------------------------------------------------------
 -- Image Cache 28*5 words
@@ -21,7 +22,7 @@ entity Cache is
         cache_in_sel,cache_out_sel : in std_logic_vector(sel-1 downto 0) := (others => '0');
         decoder_enable : in std_logic := '0';
         -- output column
-        out_column : out std_logic_vector(n_word*cap-1 downto 0) := (others => '0');
+        out_column : out wordarr_t(0 to cap-1) := (others => (others => '0'));
 
         clk : in std_logic := '0';
         -- control signals
@@ -30,8 +31,8 @@ entity Cache is
 end Cache;
 
 architecture Dataflow of Cache is
-    type array2d is array (0 to num_queues-1) of std_logic_vector(n_word*cap-1 downto 0);
-    signal que_out : array2d ;
+    type array2d is array (0 to num_queues-1) of wordarr_t(0 to cap-1);
+    signal que_out : array2d;
     signal sel_que : std_logic_vector(num_queues-1 downto 0);
     signal temp: std_logic_vector(sel-1 downto 0);
    
@@ -51,12 +52,11 @@ architecture Dataflow of Cache is
         gen_queues: for i in 0 to num_queues-1 generate   
             que : entity dcnn.Queue
                 generic map(
-                    cap,
-                    n_word
+                    cap
                 )
                 port map(
-                    input_word => in_word,
-                    parallel_out => que_out(i),
+                    d => in_word,
+                    q => que_out(i),
                     clk => clk,
                     load => sel_que(i), --enable
                     reset => reset
