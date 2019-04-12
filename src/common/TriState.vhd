@@ -15,5 +15,5 @@ end entity TriState;
 architecture DataFlow of TriState is
 begin
 	ot <= inp when en = '1'
-	else (others => 'Z');
+		else (others => 'Z');
 end architecture DataFlow;

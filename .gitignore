@@ -1,2 +1,46 @@
+transcript
+vsim.wlf
+work/_info
+work/_lib.qdb
+work/_lib1_0.qdb
+work/_lib1_0.qpg
+work/_lib1_0.qtl
+work/_vmake
+work/_lib1_1.qdb
+work/_lib1_1.qpg
+work/_lib1_1.qtl
+
+### ModelSim ###
+# ignore ModelSim generated files and directories (temp files and so on)
+[_@]*
+
+# ignore compilation output of ModelSim
+*.mti
+*.dat
+*.dbs
+*.psm
+*.cmp
+*.jpg
+*.html
+*.bsf
+
+# ignore simulation output of ModelSim
+wlf*
+*.wlf
+*.vstf
+*.ucdb
+cov*/
+transcript*
+sc_dpiheader.h
+vsim.dbg
+*.mpf
+
+### LeonardoSpectrum ###
+leospec.*
+
+### General ###
 *bak
-*.do
+*.tcl~
+*.sdf_typ.csd
+.fuse*
+.fuse*

@@ -1,0 +1,39 @@
+
+
+
+                        Clock Frequency Report
+
+	Clock                : Frequency
+      ------------------------------------
+
+	clk                  : 526.6 MHz
+
+
+                        Critical Path Report
+
+
+Critical path #1, (path slack = -0.7):
+
+NAME                                         GATE              ARRIVAL              LOAD
+----------------------------------------------------------------------------------------
+clock information not specified
+delay thru clock network                                       0.00 (ideal)
+
+
+reg_counter_data(0)_0_XREP3/Q                dffr        0.00  0.55 up             0.08
+ix310/Y                                      nand03      0.15  0.70 dn             0.02
+ix400/Y                                      aoi221      0.52  1.22 up             0.02
+reg_nx216/Y                                  oai322      0.21  1.43 dn             0.02
+reg_counter_data(3)/D                        dffr        0.00  1.43 dn             0.00
+data arrival time                                              1.43
+
+
+data required time                                             0.73
+----------------------------------------------------------------------------------------
+data required time                                             0.73
+data arrival time                                              1.43
+                                                            ----------
+slack                                                         -0.70
+----------------------------------------------------------------------------------------
+
+

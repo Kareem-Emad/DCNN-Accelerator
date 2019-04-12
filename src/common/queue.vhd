@@ -1,5 +1,7 @@
 library ieee;
+library dcnn;
 use ieee.std_logic_1164.all;
+use dcnn.config.all;
 
 -------------------------------------------------------------------------------
 -- Queue entity is an implementation of FIFO structure. Parallel output is
@@ -8,62 +10,48 @@ use ieee.std_logic_1164.all;
 
 entity Queue is
     generic(
-        cap : natural := 5; -- Queue's capacity (number of words it can store). 
-        n_word : natural := 16 -- number of bits in a word
+        cap : natural := 5 -- Queue's capacity (number of words it can store). 
     );
     port(
         -- word to be pushed
-        input_word : in std_logic_vector(n_word-1 downto 0) := (others => '0');
+        d : in word_t := (others => '0');
         -- parallel output of the whole stored data 
-        -- (not sure this is the best way, looks ugly to me)
-        parallel_out : out std_logic_vector(n_word*cap-1 downto 0) := (others => '0');
+        q : out wordarr_t(0 to cap-1) := (others => (others => '0'));
         clk : in std_logic := '0';
-        -- pushes input_word into the queue thus evicting the word #capacity-1
-        -- the next clock cycle we get parallel_out[0:n_word] = input_word
+        -- pushes d into the queue thus evicting the word #capacity-1
+        -- the next clock cycle we get q[0:n_word] = d
         load : in std_logic := '0';
         reset : in std_logic := '0'
     );
 end Queue;
 
 architecture Dataflow of Queue is
-	component Reg is
-    		generic(n : natural := 16); -- number of bits
 
-    		port(
-        		d  : in std_logic_vector(n-1 downto 0) := (others => '0'); -- parallel input
-        		q  : out std_logic_vector(n-1 downto 0) := (others => '0'); -- parallel output
-			rst_data: std_logic_vector(n-1 downto 0) := (others => '0'); -- data to reset to
-        		clk, load, reset : in std_logic := '0' -- clock, load, and reset
-    		);
-	end component;
-
-type vector_array is array(0 to cap-1) of std_logic_vector(n_word-1 downto 0);
-signal d_arr : vector_array;
-signal q_arr : vector_array;
+signal d_arr : wordarr_t(0 to cap-1);
+signal q_arr : wordarr_t(0 to cap-1);
 begin
-	d_arr(0) <= input_word;
-
-    	reg0: Reg
+    d_arr(0) <= d;
+    reg0: entity dcnn.Reg
         generic map(n_word)
         port map(
-        	d_arr(0),
-            	q_arr(0),
-		        (others => '0'),
-            	clk, load, reset
+            d => d_arr(0),
+            q => q_arr(0),
+            clk => clk,
+            load => load,
+            reset => reset
         );
-
-    	parallel_out(n_word-1 downto 0) <= q_arr(0);
-
-    	gen_regs: for i in 1 to cap-1 generate
+    q(0) <= q_arr(0);
+    gen_regs: for i in 1 to cap-1 generate
         d_arr(i) <= q_arr(i-1);     
-        regi: Reg
+        regi: entity dcnn.Reg
             generic map(n_word)
             port map(
-                d_arr(i),
-                q_arr(i),
-		        (others => '0'),
-                clk, load, reset
+                d => d_arr(i),
+                q => q_arr(i),
+                clk => clk,
+                load => load,
+                reset => reset
             );
-        parallel_out((i+1)*n_word-1 downto i*n_word) <= q_arr(i);
+        q(i) <= q_arr(i);
     end generate gen_regs;
 end Dataflow;
