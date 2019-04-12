@@ -2,29 +2,28 @@ library ieee;
 use ieee.std_logic_1164.all;
 library dcnn;
 
-entity reg is
+entity Reg is
     generic (
-        N       : natural := 16 -- number of bits
+        n       : natural := 16 -- number of bits
     ); 
-    port (
-        d_in    : in std_logic_vector(N - 1 downto 0); -- parallel input
-        load_in : in std_logic; -- load in data.
-        q_out   : out std_logic_vector(N - 1 downto 0) := (others => '0'); -- parallel output
-        clk     : in std_logic; -- clock
-        reset   : in std_logic -- reset
+    port (        
+        d  : in std_logic_vector(n-1 downto 0) := (others => '0'); -- parallel input
+        q  : out std_logic_vector(n-1 downto 0) := (others => '0'); -- parallel output
+	    rst_data: std_logic_vector(n-1 downto 0) := (others => '0'); -- data to reset to
+        clk, load, reset : in std_logic := '0' -- clock, load, and reset
     );
-end reg;
+end Reg;
 
 
-architecture Behavioral of reg is
+architecture Behavioral of Reg is
 begin
     process(clk, reset)
     begin
         if reset = '1' then
-            q_out <= (others => '0');
+            q <= rst_data;
         elsif rising_edge(clk) then
-            if load_in = '1' then
-                q_out <= d_in;
+            if load = '1' then
+                q <= d;
             end if;
         end if;
     end process;

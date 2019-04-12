@@ -8,6 +8,7 @@ end RegTB;
 architecture TB of RegTB is
     signal clk, load, reset : std_logic := '0';
     signal data_in, data_out : std_logic_vector(15 downto 0) := (others => '1');
+    signal rst_data : std_logic_vector(15 downto 0) := (others => '0');
     constant period : time := 1 ns;
 
 begin
@@ -15,9 +16,10 @@ begin
         port map (
             clk => clk,
             reset => reset,
-            load_in => load,
-            d_in => data_in,
-            q_out => data_out 
+            load => load,
+            d => data_in,
+            q => data_out,
+            rst_data => rst_data
         );
 
     process is
