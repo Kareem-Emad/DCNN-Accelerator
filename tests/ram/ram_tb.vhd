@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
+library dcnn;
 
 entity RamTB is
 end RamTB;
@@ -12,7 +12,7 @@ architecture TB of RamTB is
     constant period : time := 1 ns;
 
 begin
-    ram_inst : entity work.Ram
+    ram_inst : entity dcnn.Ram
         port map (
             clk => clk, 
             read_in => read_in, 

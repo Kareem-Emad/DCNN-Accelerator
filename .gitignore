@@ -40,3 +40,7 @@ leospec.*
 
 ### General ###
 *.bak
+*.tcl~
+*.sdf_typ.csd
+.fuse*
+.fuse*

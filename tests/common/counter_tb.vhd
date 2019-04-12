@@ -4,6 +4,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use IEEE.std_logic_unsigned.all;
+library dcnn;
 
 entity CounterTB is
 end CounterTB;
@@ -20,7 +21,7 @@ architecture TB of CounterTB is
     constant period : time := 1 ns;
     
 begin
-    counter_inst : entity work.Counter 
+    counter_inst : entity dcnn.Counter 
     port map (clk               => clk,
               reset             => rst,
               enable            => en,
@@ -48,8 +49,8 @@ begin
 
         mode <= '1';
         max_val <= (others => '0');
-        wait for 16 * period;
-        Assert (counter_out = X"0000" and max_reached='1') report "Counting down from 16 to 0 failed!";
+        wait for 32 * period;
+        Assert (counter_out = X"00000" and max_reached='1') report "Counting down from 32 to 0 failed!";
         wait for period;
     end process;
 

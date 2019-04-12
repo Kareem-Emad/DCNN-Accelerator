@@ -37,7 +37,7 @@ begin
         end loop;
     end process;
 
-    gen_queue: entity work.Queue    
+    gen_queue: entity dcnn.Queue    
         generic map(
             cap => cap, 
             n_word => n_word

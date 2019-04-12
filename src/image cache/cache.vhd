@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+library dcnn;
 
 -------------------------------------------------------------------------------
 -- Image Cache 28*5 words
@@ -35,7 +36,7 @@ architecture Dataflow of Cache is
     signal temp: std_logic_vector(sel-1 downto 0);
    
     begin
-        in_decoder : entity work.Decoder
+        in_decoder : entity dcnn.Decoder
             generic map (
                 Nsel => sel,
                 Nout => num_queues
@@ -48,7 +49,7 @@ architecture Dataflow of Cache is
         
             
         gen_queues: for i in 0 to num_queues-1 generate   
-            que : entity work.Queue
+            que : entity dcnn.Queue
                 generic map(
                     cap,
                     n_word

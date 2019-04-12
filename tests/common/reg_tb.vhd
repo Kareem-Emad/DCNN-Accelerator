@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
+library dcnn;
 
 entity RegTB is
 end RegTB;
@@ -11,7 +11,7 @@ architecture TB of RegTB is
     constant period : time := 1 ns;
 
 begin
-    reg_inst : entity work.Reg
+    reg_inst : entity dcnn.Reg
         port map (
             clk => clk,
             reset => reset,

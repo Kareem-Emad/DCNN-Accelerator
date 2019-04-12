@@ -23,7 +23,7 @@ architecture TB of CacheTB is
 
 begin
 
-    dut : entity work.Cache 
+    dut : entity dcnn.Cache 
     generic map(
         cap => cap,
         n_word => n_word,

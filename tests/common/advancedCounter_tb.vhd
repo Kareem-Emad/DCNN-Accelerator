@@ -1,6 +1,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+library dcnn;
 
 entity AdvancedCounterTB is
 end AdvancedCounterTB;
@@ -20,7 +21,7 @@ architecture TB of AdvancedCounterTB is
 
 begin
 
-    AdvancedCounter_inst : entity work.AdvancedCounter
+    AdvancedCounter_inst : entity dcnn.AdvancedCounter
     port map (clk               => clk,
               reset             => reset,
               enable            => en,
@@ -39,7 +40,7 @@ begin
         reset<= '0';
 
         wait for 5 * period;
-        Assert(counter_out=max_val and max_reached='1');
+        Assert(counter_out=max_val and max_reached='1') report "Could not count up to 5";
 
         reset <= '1';
         wait for period;
@@ -48,21 +49,20 @@ begin
 
         mode<="01";
         max_val <= "00000";
-        wait for period * 16;
-        Assert(counter_out="00000" and max_reached='1');
+        wait for period * 32;
+        Assert(counter_out="00000" and max_reached='1') report "Could not count down to 32";
        
 
         mode<="10";
         max_val <= "01000";
-        wait for period * 4;
-        Assert(counter_out=max_val and max_reached='1');
+        wait for period * 8;
+        Assert(counter_out=max_val and max_reached='1') report "Could not count up to 16";
 
 
         mode<="11";
         max_val <= "00000";
-        wait for period * 4;
-        Assert(counter_out=max_val and max_reached='1');
-
+        wait for period * 8;
+        Assert(counter_out=max_val and max_reached='1') report "Could not count down to 0";
 
         wait;
     end process;

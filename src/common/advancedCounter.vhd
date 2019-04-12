@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+library dcnn;
 
 entity AdvancedCounter is -- NOTE: COUNTER VALUE SHOULD BE RESET ON THE OUTSIDE FOR COMPUTATIONAL REASONS
     generic (

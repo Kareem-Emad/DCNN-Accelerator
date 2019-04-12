@@ -15,7 +15,7 @@ architecture TB of DecoderTB is
     signal result: std_logic_vector (27 downto 0);
 
 begin
-    dut : entity work.Decoder generic map (5,28)
+    dut : entity dcnn.Decoder generic map (5,28)
     port map (enable => enable,
               A      => A,
               F      => F);
