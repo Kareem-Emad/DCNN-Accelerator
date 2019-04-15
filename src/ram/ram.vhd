@@ -8,19 +8,28 @@ entity Ram is
 		clk 					: in std_logic; -- the clock
 		read_in					: in std_logic;
 		write_in 				: in std_logic;
-		address_in              : in std_logic_vector(7 downto 0); -- 256 addresses.
+		address_in              : in std_logic_vector(15 downto 0); -- 256 addresses.
 		data_in                 : in std_logic_vector(15 downto 0);
 		data_out                : out std_logic_vector(15 downto 0));
 end entity Ram;
 
 architecture Behavioral of Ram is
-	type ram_type is array (0 to 255) of std_logic_vector(15 downto 0);
+	type ram_type is array (0 to 65535) of std_logic_vector(15 downto 0);
 	signal ram : ram_type := (
 		--R0=0,...,R5=5
-		0 => X"0000",
+		0 => X"0003",
 		1 => X"0015",
-		2 => X"0011",
-		others => X"0000"
+		2 => X"1001",
+		3 => X"2002",
+		4 => X"3003",
+		5 => X"4004",
+		6 => X"5005",
+		7 => X"6006",
+		8 => X"7007",
+		9 => X"8008",
+		10 => X"9009",
+		11 => X"A00A",
+		others => X"BBBB"
 	);
 	begin
 		-- Inputs data into the RAM on the falling edge of the clock.
