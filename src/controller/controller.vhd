@@ -33,9 +33,12 @@ architecture Mixed of Controller is
         write_classification,
         end_state
     );
+
     signal current_state : state_type := init_filter_window;
     signal next_state : state_type := init_filter_window;
+
     signal cntr1_reset : std_logic := '0';
+    signal cntr1_reset_new : std_logic := '0';
     signal cntr1_enable : std_logic := '1';
     signal cntr1_mode : std_logic := '0';
     signal cntr1_max_val : std_logic_vector(4 downto 0) := (others => '1');
@@ -64,6 +67,7 @@ architecture Mixed of Controller is
 begin
     fltSize_squaredp3 <= "11100" when fltSize_data_out = X"0005" else "01100";
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
+
     cntr1_inst : entity dcnn.Counter
     port map (
         clk => clk,
@@ -110,6 +114,7 @@ begin
     );
 
     -- This process computes the next state given the current state and the inputs.
+    -- It also generates the state machine outputs based on the current state.
     comp_ns : process(current_state, cntr1_data, fltSize_squaredp3, cntr1_max_reached)
     begin
         case current_state is
@@ -121,7 +126,7 @@ begin
                         -- Filter data not ready yet.
                         write_mem_to_fltr <= '0';
                         -- Prepare the counter for the future.
-                        cntr1_reset <= '0';
+                        cntr1_reset_new <= '0';
                         cntr1_enable <= '1';
                         cntr1_mode <= '0';
                         cntr1_max_val <= "11111";
@@ -161,7 +166,7 @@ begin
                             mem_read_out <= '1';
                             write_mem_to_fltr <= '1';
                         else
-                            cntr1_reset <= '1';
+                            cntr1_reset_new <= '1';
                             mem_read_out <= '0';
                             write_mem_to_fltr <= '0';
                             next_state <= end_state;
@@ -172,7 +177,7 @@ begin
             when start_convolution =>
 
             when fetch_to_cache =>
-
+                    
             when fetch_to_image_window =>
 
             when write_to_memory =>
@@ -185,11 +190,19 @@ begin
                 next_state <= current_state;
             end case;
     end process;
-
+                    
+    -- This process syncs the reset of cntr1, normally asynchronously reset.
+    -- This needs to be synchronized since otherwise we'd have a glitch in the computation of the next state.
+    sync_cntr1_reset : process(clk, cntr1_reset_new)
+    begin
+        if falling_edge(clk) then
+            cntr1_reset <= cntr1_reset_new;
+        end if;
+    end process;
     
     -- This process syncs the current state and the next state.
     -- Currently this operates on the falling edge of the clock, in-sync with the memory. Could change.
-    sync_state : process(clk)
+    sync_state : process(clk, next_state)
     begin
         if falling_edge(clk) then
             current_state <= next_state;
