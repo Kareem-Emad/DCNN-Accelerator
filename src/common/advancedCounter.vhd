@@ -25,9 +25,11 @@ architecture behavioural of AdvancedCounter is
 begin
     process(reset, enable, clk)
     begin
-        if reset ='1' then
-            counter_data <= (others => '0');
-        elsif rising_edge(clk) then
+        -- if reset ='1' then
+        --     counter_data <= (others => '0');
+        if falling_edge(clk) then
+            if reset = '1' then
+                counter_data <= (others => '0');
             if enable = '1' then
                 if mode_in = "00" then
                     counter_data <= counter_data + 1;

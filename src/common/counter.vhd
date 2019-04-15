@@ -25,10 +25,12 @@ architecture behavioural of Counter is
 begin
     process(clk, reset, mode_in, enable)
     begin
-        if reset = '1' then
-            counter_data <= (others => '0');
-        elsif rising_edge(clk) then  
-            if enable = '1' then
+        -- if reset = '1' then
+        --     counter_data <= (others => '0');
+        if falling_edge(clk) then  
+            if reset = '1' then
+                counter_data <= (others => '0');
+            elsif enable = '1' then
                 if mode_in = '0' then 
                     counter_data <= counter_data + 1;
                 else
