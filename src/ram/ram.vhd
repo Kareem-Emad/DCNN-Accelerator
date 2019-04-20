@@ -8,7 +8,7 @@ entity Ram is
 		clk 					: in std_logic; -- the clock
 		read_in					: in std_logic;
 		write_in 				: in std_logic;
-		address_in              : in std_logic_vector(7 downto 0); -- 256 addresses.
+		address_in              : in std_logic_vector(15 downto 0); -- 256 addresses.
 		data_in                 : in std_logic_vector(15 downto 0);
 		data_out                : out std_logic_vector(15 downto 0));
 end entity Ram;
