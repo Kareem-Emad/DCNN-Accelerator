@@ -71,6 +71,32 @@ def create_memory():
     mem = np.append(mem, -92912 * np.ones(3 * IMSIZE * IMSIZE * 8))
     return mem, outp_addr
 
+# Start of Control Model.
+
+
+def fetch_layer_info(mem, flt_addr, ImgWidth, ImgHeight, ImgChannels):
+    layer_type = int(mem[flt_addr])  # Get the type of the layer
+    flt_addr += 1
+    nflt_layer = int(mem[flt_addr])  # Get the number of filters in layer.
+    flt_addr += 1
+    flt_size = int(mem[flt_addr])  # Get the filter size
+    flt_addr += 1
+    NewWidth = int(mem[flt_addr])  # Get the new image size
+    flt_addr += 1
+    NewHeight = NewWidth
+    NewSizeSquared = int(mem[flt_addr])  # Get the new image size * size
+    flt_addr += 1
+    # Get the total memory area taken by the following layer.
+    LayerMemSize = int(mem[flt_addr])
+    flt_addr += 1
+    if (layer_type == 2):
+        NewNumChannels = int(mem[flt_addr])
+        flt_addr += 1
+        ImgChannels = NewNumChannels
+        ImgWidth = 5
+        ImgHeight = 5
+    return flt_addr, layer_type, nflt_layer, flt_size, NewWidth, NewHeight, NewSizeSquared, LayerMemSize, ImgChannels, ImgWidth, ImgHeight
+
 
 def init_filter(mem, flt_size, flt_addr, IsPoolLayer):
     if (IsPoolLayer):
@@ -87,7 +113,7 @@ def init_filter(mem, flt_size, flt_addr, IsPoolLayer):
 # Loads a widthxheight subblock of the image.
 def init_cache(mem, base_addr, offset_addr, width, height):
     cache = np.zeros((5, IMSIZE))
-    heightMax = np.min([5, height])
+    heightMax = 5
     widthMax = np.min([IMSIZE, width])
     for h in range(5):
         for w in range(IMSIZE):
@@ -112,7 +138,6 @@ def start_convolution(mem, img_window, flt_data, current_channel, bias_base_addr
     else:
         bias1 = 0
         bias2 = 0
-        # print(bias_base_addr, bias_offset_addr)
         if current_channel == 0:
             if not IsFCLayer:
                 bias1 = flt_bias
@@ -121,7 +146,6 @@ def start_convolution(mem, img_window, flt_data, current_channel, bias_base_addr
         else:
             bias1 = mem[bias_base_addr + bias_offset_addr]
             bias_offset_addr = bias_offset_addr + 1
-        # print("Bias1 = %d" % bias1)
         if flt_size == 5:
             output1 = np.sum(np.multiply(img_window, flt_data)) + bias1
         else:
@@ -130,8 +154,6 @@ def start_convolution(mem, img_window, flt_data, current_channel, bias_base_addr
             else:
                 bias2 = mem[bias_base_addr + bias_offset_addr]
                 bias_offset_addr = bias_offset_addr + 1
-            # print("Bias1 = %f Bias2 = %f" % (bias1, bias2))
-            # print(img_window[0:3, 0:4])
             output1 = np.sum(np.multiply(img_window[0:3, 0:3], flt_data)) + bias1
             output2 = np.sum(np.multiply(img_window[0:3, 1:4], flt_data)) + bias2
     return output1, output2
@@ -143,12 +165,9 @@ def fetch_to_cache(mem, cache, col, row, maxWidth, maxHeight, base_addr, offset_
     else:
         niter = 1
     rows_loaded = np.min([maxWidth, 5])
-    # print(col, row, rows_loaded, maxHeight)
     horizontal_edge = False
     for i in range(niter):
-        # print("FTC: Start Loop")
         if row + rows_loaded < maxHeight:
-            # print("FTC: Here.")
             new_pixel = mem[base_addr + offset_addr]
             offset_addr += 1
         else:
@@ -168,13 +187,24 @@ def fetch_to_image_window(cache, img_window, col, maxWidth, flt_size):
     else:
         n_iter = 1
     for i in range(n_iter):
-        # print("In Fetch to Image Window:", col)
         img_window[:, 0:4] = img_window[:, 1:5]
         img_window[:, 4] = cache[:, col].copy()
         col = col + 1
     if col >= maxWidth:
         col = 0
     return col
+
+
+def write_to_mem(mem, flt_size, outp1, outp2, write_addr_base, write_addr_offset):
+    if flt_size == 5:
+        mem[write_addr_base + write_addr_offset] = outp1
+        write_addr_offset = write_addr_offset + 1
+    else:
+        mem[write_addr_base + write_addr_offset] = outp1
+        write_addr_offset = write_addr_offset + 1
+        mem[write_addr_base + write_addr_offset] = outp2
+        write_addr_offset = write_addr_offset + 1
+    return write_addr_offset
 
 
 def dcnn_sim(mem, outp_addr):
@@ -200,30 +230,12 @@ def dcnn_sim(mem, outp_addr):
     nlayers = int(mem[flt_addr])
     flt_addr += 1
     for i in range(nlayers):
+        # Fetch layer info
         print("Layer " + str(i) + "!")
-        layer_type = int(mem[flt_addr])  # Get the type of the layer
-        flt_addr += 1
+        flt_addr, layer_type, nflt_layer, flt_size, NewWidth, NewHeight, NewSizeSquared, LayerMemSize, ImgChannels, ImgWidth, ImgHeight = fetch_layer_info(mem, flt_addr, ImgWidth, ImgHeight, ImgChannels)
         IsConvLayer = (layer_type == 0)
         IsPoolLayer = (layer_type == 1)
         IsFCLayer = (layer_type == 2)
-        nflt_layer = int(mem[flt_addr])  # Get the number of filters in layer.
-        flt_addr += 1
-        flt_size = int(mem[flt_addr])  # Get the filter size
-        flt_addr += 1
-        NewWidth = int(mem[flt_addr])  # Get the new image size
-        flt_addr += 1
-        NewHeight = NewWidth
-        NewSizeSquared = int(mem[flt_addr])  # Get the new image size * size
-        flt_addr += 1
-        # Get the total memory area taken by the following layer.
-        LayerMemSize = int(mem[flt_addr])
-        flt_addr += 1
-        if (IsFCLayer):
-            NewNumChannels = int(mem[flt_addr])
-            flt_addr += 1
-            ImgChannels = NewNumChannels
-            ImgWidth = 5
-            ImgHeight = 5
         for j in range(nflt_layer):
             print("\tFilter %d!" % j)
             if (IsConvLayer):
@@ -234,39 +246,22 @@ def dcnn_sim(mem, outp_addr):
             if j == 0:
                 write_addr_base_prev = write_addr_base
             for ch in range(ImgChannels):
-                print("\t\tChannel %d!" % ch)
-                print("\t\tGoing into channel %d with the pair (%d, %d)!" %
-                    (ch, img_base_addr, img_offset_addr))
+                print("\t\tChannel %d started! Reading Image from (%d, %d)!" % (ch, img_base_addr, img_offset_addr))
                 flt_data, flt_addr = init_filter(mem, flt_size, flt_addr, IsPoolLayer)
-                cache, img_window, img_offset_addr = init_cache(
-                    mem, img_base_addr, img_offset_addr, ImgWidth, ImgHeight)
+                cache, img_window, img_offset_addr = init_cache(mem, img_base_addr, img_offset_addr, ImgWidth, ImgHeight)
                 print("Filter: \n", flt_data, flt_data.sum() * cache[0][0], "\nCache: \n", cache, "\n")
                 while write_addr_offset < NewSizeSquared:
                     outp1, outp2 = start_convolution(
                         mem, img_window, flt_data, ch, write_addr_base, write_addr_offset, flt_size, flt_bias, IsPoolLayer, IsFCLayer)
-                    # print(outp1)
                     colCounter, rowCounter, img_offset_addr, horizontal_edge = fetch_to_cache(
                         mem, cache, colCounter, rowCounter, ImgWidth, ImgHeight, img_base_addr, img_offset_addr, flt_size)
-                    # print(cache)
-                    imgWindowCol = fetch_to_image_window(
-                        cache, img_window, imgWindowCol, ImgWidth, flt_size)
-                    if flt_size == 5:
-                        mem[write_addr_base + write_addr_offset] = outp1
-                        write_addr_offset = write_addr_offset + 1
-                    else:
-                        mem[write_addr_base + write_addr_offset] = outp1
-                        write_addr_offset = write_addr_offset + 1
-                        mem[write_addr_base + write_addr_offset] = outp2
-                        write_addr_offset = write_addr_offset + 1
+                    imgWindowCol = fetch_to_image_window(cache, img_window, imgWindowCol, ImgWidth, flt_size)
+                    write_addr_offset = write_to_mem(mem, flt_size, outp1, outp2, write_addr_base, write_addr_offset)
                 write_addr_offset = 0
                 rowCounter = 0
                 colCounter = 0
                 imgWindowCol = 5
-            print("\tFilter %d Output at Address %d:" % (j, write_addr_base))
-            # print(NewWidth, NewHeight, NewSizeSquared)
-            flt_outp = np.reshape(
-                mem[write_addr_base:write_addr_base + NewSizeSquared], (NewWidth, NewHeight))
-            print(flt_outp, "\n")
+            print("\tFilter %d Output at Address %d:\n" % (j, write_addr_base), np.reshape(mem[write_addr_base:write_addr_base + NewSizeSquared], (NewWidth, NewHeight)), "\n")
             img_offset_addr = 0
             write_addr_base += NewSizeSquared
             # We just finished processing the last filter of the layer. Prepare for the new layer..
