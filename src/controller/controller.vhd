@@ -1,8 +1,10 @@
 
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-library dcnn;
+library work;
 
 
 entity Controller is
@@ -21,8 +23,14 @@ entity Controller is
         mem_read_out    :   out std_logic; -- reads from memory
         filter_data_out :   out std_logic_vector(N-1 downto 0);
 	    comp_unit_ready :   out std_logic;
-	    comp_unit_data1 :   out std_logic_vector(N-1 downto 0);
-	    comp_unit_data2 :   out std_logic_vector(N-1 downto 0)
+	    comp_unit_data1_out :   out std_logic_vector(N-1 downto 0);
+        comp_unit_data2_out :   out std_logic_vector(N-1 downto 0);
+        comp_unit_data1_in : in std_logic_vector(N-1 downto 0);
+        comp_unit_data2_in : in std_logic_vector(N-1 downto 0);
+        argmax_ready : out std_logic;
+        argmax_data_out : out std_logic_vector(N-1 downto 0);
+        argmax_data_in : in std_logic_vector(N-1 downto 0)
+
     );
 end Controller;
 
@@ -33,7 +41,9 @@ architecture Mixed of Controller is
         start_convolution,
         fetch_to_cache,
         fetch_to_image_window,
-        write_to_memory,
+        write_to_memory1,
+        write_to_memory2,
+	clean_it,
         argmax_computation,
         write_classification,
         end_state
@@ -42,35 +52,111 @@ architecture Mixed of Controller is
     signal current_state : state_type := init_filter_window;
     signal next_state : state_type := init_filter_window;
 
-    signal cntr1_reset : std_logic := '0';
-    signal cntr1_reset_new : std_logic := '0';
-    signal cntr1_enable : std_logic := '1';
-    signal cntr1_mode : std_logic := '0';
-    signal cntr1_max_val : std_logic_vector(4 downto 0) := (others => '1');
+    signal cntr1_reset : std_logic ;
+    signal cntr1_reset_new : std_logic ;
+    signal cntr1_enable : std_logic ;
+    signal cntr1_mode : std_logic ;
+    signal cntr1_max_val : std_logic_vector(4 downto 0) ;
     signal cntr1_max_reached : std_logic := 'Z';
-    signal cntr1_data : std_logic_vector(4 downto 0) := (others => 'Z');
+    signal cntr1_data : std_logic_vector(4 downto 0) ;
 
-    signal fltSize_reset : std_logic := '0';
-    signal fltSize_load : std_logic := '0';
-    -- signal fltSize_data_in : std_logic_vector(N-1 downto 0) := '0';
-    signal fltSize_data_out : std_logic_vector(N-1 downto 0) := (others => '0');
-    signal fltSize_rst_data : std_logic_vector(N-1 downto 0) := (others => '0');
+    signal fltSize_reset : std_logic ;
+    signal fltSize_load : std_logic ;
+    -- signal fltSize_data_in : std_logic_vector(N-1 downto 0) ;
+    signal fltSize_data_out : std_logic_vector(N-1 downto 0) ;
+    signal fltSize_rst_data : std_logic_vector(N-1 downto 0) ;
 
-    signal bias_reset : std_logic := '0';
-    signal bias_load : std_logic := '0';
-    signal bias_data_out : std_logic_vector(N-1 downto 0) := (others => '0');
-    signal bias_rst_data : std_logic_vector(N-1 downto 0) := (others => '0');
 
-    signal bias2_reset : std_logic := '0';
-    signal bias2_load  : std_logic := '0';
-    signal bias2_data_out : std_logic_vector(N-1 downto 0) :=(others => '0'); 
-    signal bias2_rst_data : std_logic_vector(N-1 downto 0) :=(others => '0'); 
- 
-    signal offset_reset : std_logic := '0';
-    signal offset_load  : std_logic := '0';
+    signal bias_base_reset : std_logic :='0';
+    signal bias_base_load : std_logic ;
+    signal bias_base_enable : std_logic ;
+    signal bias_base_data_in  : std_logic_vector(M-1 downto 0) :=(others =>'0');
+    signal bias_base_data_out : std_logic_vector(M-1 downto 0) ;
+    signal bias_base_rst_data : std_logic_vector(M-1 downto 0) ;
+
+    signal bias_offset_reset : std_logic :='0';
+    signal bias_offset_load : std_logic ;
+    signal bias_offset_enable : std_logic ;
+    signal bias_offset_data_in  : std_logic_vector(M-1 downto 0) :=(others =>'0');
+    signal bias_offset_data_out : std_logic_vector(M-1 downto 0) ;
+    signal bias_offset_rst_data : std_logic_vector(M-1 downto 0) ;
+
+    signal flt_bias_reset : std_logic ;
+    signal flt_bias_enable : std_logic ;
+    signal flt_bias_load : std_logic ;
+    signal flt_bias_in : std_logic_vector(N-1 downto 0) ;
+    signal flt_bias_out : std_logic_vector(N-1 downto 0) ;
+    signal flt_bias_rst_data : std_logic_vector(N-1 downto 0) ;
+
+    signal flt_bias2_reset : std_logic ;
+    signal flt_bias2_enable : std_logic ;
+    signal flt_bias2_load : std_logic ;
+    signal flt_bias2_in : std_logic_vector(N-1 downto 0) ;
+    signal flt_bias2_out : std_logic_vector(N-1 downto 0) ;
+    signal flt_bias2_rst_data : std_logic_vector(N-1 downto 0) ;
+
+
+    signal offset_reset : std_logic ;
+    signal offset_load  : std_logic ;
     signal offset_address_in : std_logic_vector(M-1 downto 0) :=(others => '0');
     signal offset_address_out : std_logic_vector(M-1 downto 0) :=(others => '0');
-    signal offset_rst_data: std_logic_vector(M-1 downto 0);
+    signal offset_rst_data: std_logic_vector(M-1 downto 0) :=(others =>'0') ;
+
+    signal flt_type_rst : std_logic :='0' ;
+    signal flt_type_enable : std_logic ;
+    signal flt_type_in : std_logic_vector(1 downto 0);
+    signal flt_type_out : std_logic_vector(1 downto 0);
+    signal flt_type_load : std_logic :='0';
+
+
+    signal addr1_reset : std_logic ;
+    signal addr1_enable : std_logic ;
+    signal addr1_mode : std_logic ;
+    signal addr1_max_reached : std_logic := 'Z';
+    signal addr1_data : std_logic_vector(M-1 downto 0) ;
+
+
+    
+    signal write_base_reset : std_logic ;
+    signal write_base_load : std_logic ;
+    signal write_base_data_in : std_logic_vector(M-1 downto 0) ;
+    signal write_base_data_out : std_logic_vector(M-1 downto 0);
+    signal write_base_rst_data : std_logic_vector(M-1 downto 0) ;
+
+    signal write_offset_reset : std_logic ;
+    signal write_offset_load : std_logic ;
+    signal write_offset_data_in : std_logic_vector(M-1 downto 0) ;
+    signal write_offset_data_out : std_logic_vector(M-1 downto 0);
+    signal write_offset_rst_data : std_logic_vector(M-1 downto 0) ;
+
+    signal class_cntr_reset : std_logic ;
+    signal class_cntr_enable : std_logic ;
+    signal class_cntr_max_val_in : std_logic_vector(3 downto 0) ;
+    signal class_cntr_mode_in : std_logic ;
+    signal class_cntr_max_reached_out : std_logic;
+    signal class_cntr_counter_out : std_logic_vector(3 downto 0) ; 
+
+
+    -- base address where the 10 classification results are saved.
+    -- the class cntr is used to get the 10 results for the argmax unit.
+    signal argmax_base_reset : std_logic ;
+    signal argmax_base_load : std_logic ;
+    signal argmax_base_data_in : std_logic_vector(M-1 downto 0) ;
+    signal argmax_base_data_out : std_logic_vector(M-1 downto 0) ;
+    signal argmax_base_rst_data : std_logic_vector(M-1 downto 0) ;
+
+    signal result_addr_reset : std_logic ;
+    signal result_addr_load : std_logic ;
+    signal result_addr_data_in : std_logic_vector(M-1 downto 0) ;
+    signal result_addr_data_out : std_logic_vector(M-1 downto 0) ;
+    signal result_addr_rst_data : std_logic_vector(M-1 downto 0) ;
+
+
+    signal fltSize_squaredp3 : std_logic_vector(4 downto 0) ;
+    signal write_mem_to_fltr : std_logic ;
+
+    signal bias1 : std_logic_vector(N-1 downto 0) ;
+    signal bias2 : std_logic_vector(N-1 downto 0) ;
 
     signal channel_ctr_reset : std_logic := '0';
     signal channel_ctr_enable  : std_logic := '0';
@@ -78,51 +164,14 @@ architecture Mixed of Controller is
     signal channel_max_reached_out : std_logic;
     signal channel_ctr_out : std_logic_vector(2 downto 0);
     signal channel_ctr_max_val_in : std_logic_vector(2 downto 0);
-
-    signal layer_ctr_reset : std_logic := '0';
-    signal layer_ctr_enable : std_logic := '0';
-    signal layer_ctr_mode : std_logic := '0';
-    signal layer_max_reached_out : std_logic := '0';
-    signal layer_ctr_out : std_logic_vector(1 downto 0);
-    signal layer_ctr_max_val_in : std_logic_vector(1 downto 0);
-
-    signal flt_type_rst : std_logic :='0' ;
-    signal flt_type_enable : std_logic := '0';
-    signal flt_type_in : std_logic_vector(1 downto 0);
-    signal flt_type_out : std_logic_vector(1 downto 0);
-    signal flt_type_load : std_logic :='0';
-
-
-    signal addr1_reset : std_logic := '0';
-    signal addr1_enable : std_logic := '1';
-    signal addr1_mode : std_logic := '0';
-    signal addr1_max_reached : std_logic := 'Z';
-    signal addr1_data : std_logic_vector(M-1 downto 0) := (others => 'Z');
-
-    signal base1_reset : std_logic := '0';
-    signal base1_load : std_logic := '0';
-    signal base1_in : std_logic_vector(M-1 downto 0);
-    signal base1_out : std_logic_vector(M-1 downto 0);
-
-
-    signal base2_reset : std_logic := '0';
-    signal base2_load : std_logic := '0';
-    signal base2_in : std_logic_vector(M-1 downto 0);
-    signal base2_out : std_logic_vector(M-1 downto 0);
-
-    signal out_offset_reset : std_logic := '0';
-    signal out_offset_load : std_logic := '0';
-    signal out_offset_in : std_logic_vector(M-1 downto 0);
-    signal out_offset_out : std_logic_vector(M-1 downto 0);
-
-    signal fltSize_squaredp3 : std_logic_vector(4 downto 0) := (others => 'Z');
-    signal write_mem_to_fltr : std_logic := '0';
-
+   -- temps , to be removed.
+    signal bias_reset : std_logic; 
+    signal bias_load : std_logic;
 begin
     fltSize_squaredp3 <= "11100" when fltSize_data_out = X"0005" else "01100";
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
 
-    cntr1_inst : entity dcnn.Counter
+    cntr1_inst : entity work.Counter
     port map (
         clk => clk,
         reset => cntr1_reset,
@@ -133,7 +182,7 @@ begin
         counter_out => cntr1_data
     );
     
-    cntr_mem_addr : entity dcnn.Counter
+    cntr_mem_addr : entity work.Counter
     generic map (
         N => 16
     ) 
@@ -147,7 +196,7 @@ begin
         counter_out => addr1_data
     );
 
-    reg_filter_height : entity dcnn.Reg
+    reg_filter_height : entity work.reg
     port map (
         clk => clk,
         reset => fltSize_reset,
@@ -157,76 +206,80 @@ begin
         rst_data => fltSize_rst_data
     );
 
-    reg_bias1 : entity dcnn.Reg
+    reg_bias_base : entity work.reg 
+    port map(
+        clk =>clk,
+        reset => bias_base_reset,
+        load => bias_base_load,
+        d => bias_base_data_in,
+        q => bias_base_data_out,
+        rst_data => bias_base_rst_data
+    );
+
+    reg_bias_offset : entity work.reg
     port map (
         clk => clk,
-        reset => bias_reset,
-        load => bias_load,
+        reset => bias_offset_reset,
+        load => bias_offset_load,
         d => mem_data_in,
-        q => bias_data_out,
-        rst_data => bias_rst_data
+        q => bias_offset_data_out,
+        rst_data => bias_offset_rst_data
     );
-    reg_bias2 : entity dcnn.reg
-    port map (
-	clk => clk,
-	reset => bias2_reset,
-	load => bias2_load,
-	d => mem_data_in,
-	q => bias2_data_out,
-	rst_data => bias2_rst_data
+
+    reg_flt_bias1 : entity work.reg
+    port map(
+        clk => clk,
+        reset => flt_bias_reset,
+        load =>flt_bias_load,
+        d => flt_bias_in,
+        q =>flt_bias_out,
+        rst_data => flt_bias_rst_data
+    );   
+
+    reg_flt_bias2 : entity work.reg
+    port map(
+        clk => clk,
+        reset => flt_bias2_reset,
+        load => flt_bias2_load,
+        d => flt_bias2_in,
+        q => flt_bias2_out,
+        rst_data => flt_bias2_rst_data
+    );
+
+    -- base and offset used for write_to_memory state.
+    reg_write_base : entity work.reg
+    port map(
+        clk => clk,
+        reset => write_base_reset,
+        load => write_base_load,
+        d => write_base_data_in,
+        q => write_base_data_out,
+        rst_data => write_base_rst_data
+    );
+
+    reg_write_offset : entity work.reg
+    port map(
+        clk => clk,
+        reset => write_offset_reset,
+        load => write_offset_load,
+        d => write_offset_data_in,
+        q => write_offset_data_out,
+        rst_data => write_offset_rst_data
     );
 
     
-    reg_offset : entity dcnn.reg
-    port map (
-	clk => clk,
-	reset => offset_reset,
-	load => offset_load,
-	d => offset_address_in ,
-	q => offset_address_out,
-	rst_data => offset_rst_data
-    )
-
-    reg_base1 : entity dcnn.reg
-    generic map (
-        N => M
-    )
+    reg_result_addr : entity work.reg
     port map(
-    clk => clk,
-    reset => base1_reset,
-    load => base1_load,
-    d => base1_in,
-    q => base1_out,
-    rst_data => (others =>'0')
-    )
+        clk => clk,
+        reset => result_addr_reset,
+        load => result_addr_load,
+        d => result_addr_data_in,
+        q => result_addr_data_out,
+        rst_data => result_addr_rst_data
 
-    reg_base2 : entity dcnn.reg
-    generic map(
-        N => M
-    )
-    port map(
-    clk => clk,
-    reset => base2_reset,
-    load => base2_load,
-    d => base2_in,
-    q => base2_out,
-    rst_data => (others => '0')
-    )
-
-    reg_out_offset : entity dcnn.reg
-    generic map(
-        N => M
-    )
-    port map(
-    clk => clk,
-    reset => out_offset_reset,
-    load => out_offset_load,
-    d => out_offset_in,
-    q => out_offset_out,
-    rst_data => (others => '0')
-    )
-
-    ctr_channel : entity dcnn.counter
+    );
+    
+    ctr_channel : entity work.counter
     generic map (
         N => 3
     )
@@ -238,21 +291,36 @@ begin
 	max_val_in => channel_ctr_max_val_in,
 	max_reached_out => channel_max_reached_out,
 	counter_out => channel_ctr_out
-    )
+    );
 
-    ctr_layer : entity dcnn.counter
-    generic map(
-        N => 2
-    )
+
+    -- for counting 10 entries to the Argmax unit.
+
+    cntr_class : entity work.Counter
+    generic map (
+        N => 4
+    ) 
     port map(
-    clk => clk,
-    reset => layer_ctr_reset,
-    load => layer_ctr_enable,
-    mode_in => layer_ctr_mode,
-    max_val_in => layer_ctr_max_val_in,
-    max_reached_ouy => layer_max_reached_out,
-    counter_out => layer_ctr_out
-    )
+        clk => clk,
+        reset => class_cntr_reset,
+        mode_in => class_cntr_mode_in,
+        enable => class_cntr_enable,
+        max_reached_out => class_cntr_max_reached_out,
+        max_val_in => class_cntr_max_val_in, -- max value in is 10.
+        counter_out => class_cntr_counter_out
+        
+    );
+    -- holds the base address where the 10 results of the FC exist.
+    reg_class_base : entity work.reg
+    port map(
+        clk => clk,
+        reset => argmax_base_reset,
+        load => argmax_base_load,
+        d => argmax_base_data_in,
+        q => argmax_base_data_out,
+        rst_data => argmax_base_rst_data
+    );
+
 
     -- This process computes the next state given the current state and the inputs.
     -- It also generates the state machine outputs based on the current state.
@@ -314,67 +382,126 @@ begin
                         end if;
                     end case;
             when init_image_cache =>
-                    
+                end case;
             -- NOTE : Where do we load the filter type?
             when start_convolution =>
-		    if flt_type_out = "00" or flt_type_out = "01" then to_comp_unit <=1
-		        elsif channel_ctr_out = "000"  then
-		            comp_unit_data1 <= bias1_data_out;
-
-		            if fltSize_data_out = x"0003" then
-		                comp_unit_data2<= bias2_data_out;
-                    else
-                        comp_unit_data2 <= others =>'0';
-		            end if
-		        else
-                    mem_addr_out <= offset_address_out;
-                    mem_read_out <= '1';
-
-                    comp_unit_data1 <= mem_data_in;
-                    mem_read_out <= '0';
-                if filter_size_out = x"0003"
-                then 
-                    mem_addr_out <= std_logic_vector(to_unsigned(to_integer(unsigned(offset_address_out)) + 1, M);
-                    mem_read_out <='1';
-                    comp_unit_data2 <= mem_data_in;
-                    mem_read_out <= '0';
+            comp_unit_data1_out <= x"0000";
+            comp_unit_data2_out <= x"0000";
+            bias1 <= (others =>'0');
+            bias2 <= (others =>'0');
+            -- if pooling or FC, start computing! "00" for pooling, "01" for FC.
+            if flt_type_out = "00" then comp_unit_ready <= '1';
+             -- check if FC, if FC use the already stored FC bias
+            elsif channel_ctr_out = "000" and flt_type_out = "01" then
+                        bias1 <= (others =>'0');
+            elsif channel_ctr_out = "000" and flt_type_out = "10" then
+                        bias1 <= flt_bias_out;
+ 
+            else
+            mem_addr_out<= std_logic_vector(unsigned(bias_offset_data_out) + unsigned(bias_base_data_out));
+            mem_read_out <= '1';
+            bias1 <= mem_data_in;
+            mem_read_out <= '0';
+            bias_offset_data_in <= std_logic_vector(unsigned(bias_offset_data_out) +1);
+            if fltSize_data_out = x"0005" then  -- can't load twice into the bias offset reg in a single cycle.  
+               bias_offset_load <= '1';
                 else
-                    comp_unit_data2 <= others =>'0';
-                end if
-                offset_address_in <= std_logic_vector(to_unsigned(to_integer(unsigned(offset_address_out)) + 1, M);
-                offset_load <= 1;
-                to_comp_unit <= 1;
-            end if
-		
-            when fetch_to_cache =>
+                bias_offset_load <= '0';
+                end if;
+                    -- we can make that flt size take only 1 or zero.
+		        if fltSize_data_out = x"0003" then
+                    if channel_ctr_out = "000" then 
+                        bias2 <= flt_bias2_out;
+                    else
+
+                        mem_addr_out <=  std_logic_vector(unsigned(bias_offset_data_out) + unsigned(bias_base_data_out)+1);
+                        mem_read_out <= '1';
+                        bias2 <= mem_data_in;
+                        mem_read_out <= '0';
+                        bias_offset_data_in <= std_logic_vector(unsigned(bias_offset_data_out) +2 );
+                        bias_offset_load <= '1';
+                            
+                    end if;
+
+                else
+                   bias2 <= (others => '0');
+                        
+                end if;
                     
+            end if;
+
+            comp_unit_data1_out <= bias1;
+            comp_unit_data2_out <= bias2;
+            comp_unit_ready <= '1';
+        
+            end case;
+            when fetch_to_cache =>
+
+
+             end case;    
             when fetch_to_image_window =>
             -- we need to add a counter for the convolution process.
-            when write_to_memory =>
-                out_offset_in <= std_logic_vector(to_unsigned(to_integer(unsigned(out_offset_out)) + 1, M);
-                if flt_type_out = "00" or current_filter_finished = '1' then
-                    next_state <= init_filter_window;
-                elsif current_filter_finished = '0' or current_channel_finsihed ='0' then
-                    next_state <= start_convolution;
-                elsif current_channel_finished = '1' and channel_max_reached_out = '0' then
-                    next_state <= init_filter_window; -- to fetch the new channel of the filter.
-                    out_offset_in <= base1_out;
-                    out_offset_load <= '1';
-                elsif channel_max_reached_out= '1' and layer_max_reached_out = '0' then
-                    base1_in <= base2_out;
-                    base2_in <= base1_out;
-                    base1_load <= '1';
-                    base2_load <= '1';
-                    next_state <= init_filter_window;
-                elsif layer_max_reached_out = '1' then
-                    next_state <= argmax_computation; 
-                else 
-                endif                    
+            when write_to_memory1 =>
+            if fltSize_data_out = x"0005" then
+                mem_data_out <=  comp_unit_data1_in;
+               
+                mem_addr_out <=   std_logic_vector(unsigned(write_base_data_out)+ unsigned(write_offset_data_out);
 
-            when argmax_computation =>
+                mem_write_out <= '1';
+                write_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) +1);
+                write_offset_load <= '1';
+                
+                next_state <= clean_it;
+            else
+                mem_data_out <= comp_unit_data1_in;
+                mem_addr_out <=  std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
+                mem_write_out <= '1';
 
+                write_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) +1);
+                write_offset_load <= '1';
+                next_state => write_to_memory2;
+                
+            end if; 
+	    end case; 
+            
+            when write_to_memory2 =>
+                mem_data_out <= comp_unit_data2_in;
+                mem_addr_out <=  std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
+                mem_write_out <= '1';
+
+                write_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) + 1);
+                write_offset_load <= '1';
+                next_state <= clean_it;
+             end case;
+            when clean_it =>
+
+		 end case;
+                -- using the class cntr and argmax base register, getting all elements and feeding them into the argmax unit.
+        when argmax_computation =>
+            if class_cntr_max_reached_out = '1' then
+                    class_cntr_reset = '1';
+                    next_state <= write_classification;
+            else
+                    class_cntr_enable = '1';
+                    mem_addr_out <=  std_logic_vector(unsigned(class_cntr_data_out) + unsigned(argmax_base_data_out));
+                    mem_read_out <= '1';
+                    argmax_ready <= '1';
+                    argmax_data_out <= mem_data_in;
+                    next_state <= argmax_computation;
+            end if;
+        end case; 
+
+            -- assuming that the result of the argmax is available at the input : argmax_data_in
+            -- so simply, it'll be written into mem[result_addr_data_out]
             when write_classification =>
-
+                    mem_addr_out <= result_addr_data_out;
+                    mem_data_out <= argmax_data_in;
+                    mem_write_out <= '1';
+                    next_state <= end_state;
+             end case;
+            when end_state =>
+             end case;    
+    -- END. should we reset? 
             when others =>
                 next_state <= current_state;
             end case;
@@ -393,6 +520,8 @@ begin
     -- Currently this operates on the falling edge of the clock, in-sync with the memory. Could change.
     sync_state : process(clk, next_state)
     begin
+
+        
         if falling_edge(clk) then
             current_state <= next_state;
         end if;
