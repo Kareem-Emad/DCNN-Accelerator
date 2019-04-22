@@ -39,7 +39,7 @@ begin
     end process;
 
     counter_data_v <= std_logic_vector(counter_data);
-    counter_out <= counter_data_v when enable = '1' else (others => '0');
+    counter_out <= counter_data_v;
     max_reached_out <= '1' when counter_data_v = max_val_in else '0';
 end behavioural;
   
