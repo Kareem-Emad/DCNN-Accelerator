@@ -58,6 +58,7 @@ begin
         variable finished_iter : std_logic;
     begin
         -- A signal spy mirrors the value in the signal at src (1st arg) to the signal at dst (2nd arg).
+        -- This is done in order to access signals in component instances.
         init_signal_spy("/controllertb/controller_inst/nlayers_out", "/controllertb/nlayers_out");
         init_signal_spy("/controllertb/controller_inst/layer_type_out", "/controllertb/layer_type_out");
         init_signal_spy("/controllertb/controller_inst/nflt_layer_out", "/controllertb/nflt_layer_out");
@@ -87,7 +88,7 @@ begin
         wait for period;
         assert(layer_mem_size_out = X"0548") report "Fetching layer memory size failed!";
         wait for period; -- we incur a one state delay before initializing the filter window. 
-        -- assert(num_channels_out = X"0005") report "Fetching number of channels failed!";
+        -- if FC assert(num_channels_out = X"0005") report "Fetching number of channels failed!";
         for iter in 1 to 9 loop
             iter_v := std_logic_vector(to_unsigned(iter, 16));
             assert(filter_data = iter_v) report "Fetching filter failed! iter " & integer'image(to_integer(unsigned(iter_v))) & " filter_data = " & integer'image(to_integer(unsigned(filter_data)));

@@ -68,13 +68,6 @@ architecture Mixed of Controller is
     signal cntr1_max_reached : std_logic := 'Z';
     signal cntr1_data : std_logic_vector(5 downto 0) := (others => 'Z');
 
-    signal channel_ctr_reset : std_logic := '0';
-    signal channel_ctr_enable  : std_logic := '0';
-    signal channel_ctr_mode: std_logic := '0';
-    signal channel_max_reached_out : std_logic;
-    signal channel_ctr_out : std_logic_vector(2 downto 0);
-    signal channel_ctr_max_val_in : std_logic_vector(2 downto 0);
-
     -- Memory Addressing
     signal addr1_reset : std_logic := '0';
     signal addr1_enable : std_logic := '1';
@@ -129,9 +122,10 @@ architecture Mixed of Controller is
     signal img_width_out : std_logic_vector(4 downto 0);
     signal img_height_out : std_logic_vector(4 downto 0);
 
-    -- Cache Init Signals
+    -- Cache Signals
     signal max_width : std_logic_vector(4 downto 0);
     signal max_height : std_logic_vector(4 downto 0);
+    
 
 begin
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
@@ -145,6 +139,7 @@ begin
     actual_next_state <= next_state when reset = '0' else fetch_nlayers;
     img_height_out <= img_width_out;
 
+    -- Layer Information Components
     nlayers : entity dcnn.LoadedCounter
     generic map (N => 3)
     port map (
@@ -211,7 +206,8 @@ begin
         clk => clk, reset => gen_reset, load => img_width_load,
         d => img_width_data_load, q => img_width_out, rst_data => "11100"
     );
-
+    
+    -- Generic counter
     cntr1_inst : entity dcnn.Counter
     generic map (N => 6)
     port map (
@@ -224,6 +220,7 @@ begin
         counter_out => cntr1_data
     );
     
+    -- Memory addressing
     cntr_mem_addr : entity dcnn.Counter
     generic map (
         N => 16
@@ -238,19 +235,17 @@ begin
         counter_out => addr1_data
     );
 
-    ctr_channel : entity dcnn.counter
-    generic map (
-        N => 3
-    )
-    port map (
-        clk => clk,
-        reset => channel_ctr_reset,
-        enable => channel_ctr_enable,
-        mode_in => channel_ctr_mode,
-        max_val_in => channel_ctr_max_val_in,
-        max_reached_out => channel_max_reached_out,
-        counter_out => channel_ctr_out
-    );
+    -- Image Cache components
+    img_cache : entity dcnn.Cache
+        port map(
+            in_word => cache_data_in,
+            cache_in_sel => cache_width_count(4 downto 0),
+            cache_out_sel  => cache_out_sel(4 downto 0), --not used here
+            decoder_enable => cache_load,
+            out_column => cache_data_out,
+            clk => not_clk,
+            reset => cache_rst
+        );  
 
     -- This process computes the next state given the current state and the inputs.
     -- It also generates the state machine outputs based on the current state.
@@ -362,7 +357,21 @@ begin
                 end if;
             when init_image_cache_1 =>
                 -- Cleaning up
-                -- TO-DO: Transfer Image Cache here!
+                mem_read <= '0';
+                cntr1_enable <= '0';
+                addr1_enable <= '0';
+                write_mem_to_fltr <= '0';
+                -- Properly set the maximum width and height
+                max_width <= img_width_out;
+                max_height <= "0";
+                -- Reset stuff
+                cntr1_reset <= '1';
+                cntr1_enable <= '0';
+                cntr1_mode <= '0';
+                cache_rst <= '1';
+                
+                -- Next state is the loop
+                next_state <= init_image_cache_2;
             when init_image_cache_2 =>
                 -- TO-DO: Image Cache Loop here!
             when start_convolution =>
