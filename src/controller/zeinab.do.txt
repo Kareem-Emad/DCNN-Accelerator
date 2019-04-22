@@ -6,11 +6,10 @@ run 8000
 
 
 some notes about cache
--image is directly after the first filter - first channel
--image height then width then pixels
 -max value or width counter = image width -1
 -counters work on risig edge and registers and cache latch on falling edge
--max reached signal of the counter was 1 for just instanc so instead latch it in another signal
--to read from memory increment at the start so that the out of the counter is MY ADDRESS
 
--now i'm trying to exit when = width => worked
+-when out from init image window: 
+    wind_width_count = 4
+    cache_width_count = 0
+    cache_hight_count = 0

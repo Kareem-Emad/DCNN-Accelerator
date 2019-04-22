@@ -70,7 +70,10 @@ begin
         wait for 100 ps;
         for i in 0 to 24 loop
             assert ordered_img_data(i) = img_data(indices3x3(i));
-            assert ordered_filter_data(i) = filter_data(indices3x3(i));
+        end loop;
+        for i in 0 to 8 loop
+            assert ordered_filter_data(i) = filter_data(i);
+            assert ordered_filter_data(i+9) = filter_data(i);
         end loop;
     end process;
 end Test;

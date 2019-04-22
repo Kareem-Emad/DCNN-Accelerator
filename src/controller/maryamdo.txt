@@ -1,0 +1,61 @@
+vsim -gui dcnn.controllertb
+
+add wave -position insertpoint  \
+sim:/controllertb/clk \
+sim:/controllertb/controller_inst/cache_width \
+sim:/controllertb/controller_inst/cache_height \
+sim:/controllertb/controller_inst/current_state \
+sim:/controllertb/controller_inst/next_state \
+sim:/controllertb/controller_inst/filter_tbt \
+sim:/controllertb/controller_inst/edged_o \
+sim:/controllertb/controller_inst/edged \
+sim:/controllertb/controller_inst/second_fetch_o \
+sim:/controllertb/controller_inst/second_fetch \
+sim:/controllertb/controller_inst/wind_width_ended_o \
+sim:/controllertb/controller_inst/wind_width_count_rst \
+sim:/controllertb/controller_inst/wind_width_count_mode \
+sim:/controllertb/controller_inst/wind_width_count_en \
+sim:/controllertb/controller_inst/wind_width_count \
+sim:/controllertb/controller_inst/wind_col_in \
+sim:/controllertb/controller_inst/wind_en \
+sim:/controllertb/controller_inst/cache_out_sel \
+sim:/controllertb/controller_inst/cache_height_count \
+sim:/controllertb/controller_inst/cache_height_count_rst \
+sim:/controllertb/controller_inst/cache_height_count_en \
+sim:/controllertb/controller_inst/cache_height_count_mode \
+sim:/controllertb/controller_inst/cache_height_ended_o \
+sim:/controllertb/controller_inst/cache_height_ended \
+sim:/controllertb/controller_inst/cache_width_count \
+sim:/controllertb/controller_inst/cache_width_count_rst \
+sim:/controllertb/controller_inst/cache_width_count_en \
+sim:/controllertb/controller_inst/cache_width_count_mode \
+sim:/controllertb/controller_inst/cache_width_ended_o \
+sim:/controllertb/controller_inst/cache_width_ended \
+sim:/controllertb/controller_inst/cache_load \
+sim:/controllertb/controller_inst/cache_data_in \
+sim:/controllertb/controller_inst/addr1_enable \
+sim:/controllertb/controller_inst/addr1_mode \
+sim:/controllertb/controller_inst/addr1_reset \
+sim:/controllertb/controller_inst/addr1_data \
+sim:/controllertb/controller_inst/mem_read_out \
+sim:/controllertb/controller_inst/ftc_cntrl_reg_en \
+sim:/controllertb/controller_inst/ftc_cntrl_reg_rst \
+sim:/controllertb/controller_inst/fltSize_reset \
+sim:/controllertb/controller_inst/fltSize_load \
+sim:/controllertb/controller_inst/fltSize_data_out \
+sim:/controllertb/controller_inst/begin_ftc \
+sim:/controllertb/controller_inst/begin_ftc_o 
+mem load -i D:/DCNN-Accelerator/ram1.mem /controllertb/ram_inst/ram
+
+if conditionnnsss:
+filter_tbt
+cache_height_ended
+edged
+cache_width_ended
+second_fetch
+wind_width_ended
+
+
+assingments:
+mem_data_in
+cache_data_out

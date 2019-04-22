@@ -25,13 +25,14 @@ begin
     window3x3_x: for i in 0 to 2 generate
         window3x3_y: for j in 0 to 2 generate
             ordered_img_data(i*3+j) <= img_data(i*5+j);
-            ordered_filter_data(i*3+j) <= filter_data(i*5+j); 
+            ordered_filter_data(i*3+j) <= filter_data(i*3+j) when filter_size=filter3x3 else 
+                                        filter_data(i*5+j);
 
             ordered_img_data(i*3+j+9) <= 
                 img_data(i*5+j+1) when filter_size=filter3x3 else
                 img_data(indices(i*3 + j));
             ordered_filter_data(i*3+j+9) <= 
-                filter_data(i*5+j+1) when filter_size=filter3x3 else
+                filter_data(i*3+j) when filter_size=filter3x3 else
                 filter_data(indices(i*3 + j));
         end generate;
     end generate;
