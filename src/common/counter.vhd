@@ -40,7 +40,7 @@ begin
 
     counter_data_v <= std_logic_vector(counter_data);
     counter_out <= counter_data_v;
-    max_reached_out <= '1' when counter_data_v = std_logic_vector(unsigned(max_val_in) - 1) else '0';
+    max_reached_out <= '1' when counter_data_v = max_val_in else '0';
 end behavioural;
 
 library ieee;
@@ -89,5 +89,5 @@ begin
 
     counter_data_v <= std_logic_vector(counter_data);
     counter_out <= counter_data_v;
-    max_reached_out <= '1' when counter_data_v = std_logic_vector(unsigned(max_val_in) - 1) else '0';
+    max_reached_out <= '1' when counter_data_v = max_val_in else '0';
 end behavioural;
