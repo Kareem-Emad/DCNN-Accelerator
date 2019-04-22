@@ -4,7 +4,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-library dcnn;
+library work;
 
 
 entity Controller is
@@ -171,7 +171,7 @@ begin
     fltSize_squaredp3 <= "11100" when fltSize_data_out = X"0005" else "01100";
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
 
-    cntr1_inst : entity dcnn.Counter
+    cntr1_inst : entity work.Counter
     port map (
         clk => clk,
         reset => cntr1_reset,
@@ -182,7 +182,7 @@ begin
         counter_out => cntr1_data
     );
     
-    cntr_mem_addr : entity dcnn.Counter
+    cntr_mem_addr : entity work.Counter
     generic map (
         N => 16
     ) 
@@ -196,7 +196,7 @@ begin
         counter_out => addr1_data
     );
 
-    reg_filter_height : entity dcnn.reg
+    reg_filter_height : entity work.reg
     port map (
         clk => clk,
         reset => fltSize_reset,
@@ -206,7 +206,7 @@ begin
         rst_data => fltSize_rst_data
     );
 
-    reg_bias_base : entity dcnn.reg 
+    reg_bias_base : entity work.reg 
     port map(
         clk =>clk,
         reset => bias_base_reset,
@@ -216,7 +216,7 @@ begin
         rst_data => bias_base_rst_data
     );
 
-    reg_bias_offset : entity dcnn.reg
+    reg_bias_offset : entity work.reg
     port map (
         clk => clk,
         reset => bias_offset_reset,
@@ -226,7 +226,7 @@ begin
         rst_data => bias_offset_rst_data
     );
 
-    reg_flt_bias1 : entity dcnn.reg
+    reg_flt_bias1 : entity work.reg
     port map(
         clk => clk,
         reset => flt_bias_reset,
@@ -236,7 +236,7 @@ begin
         rst_data => flt_bias_rst_data
     );   
 
-    reg_flt_bias2 : entity dcnn.reg
+    reg_flt_bias2 : entity work.reg
     port map(
         clk => clk,
         reset => flt_bias2_reset,
@@ -247,7 +247,7 @@ begin
     );
 
     -- base and offset used for write_to_memory state.
-    reg_write_base : entity dcnn.reg
+    reg_write_base : entity work.reg
     port map(
         clk => clk,
         reset => write_base_reset,
@@ -257,7 +257,7 @@ begin
         rst_data => write_base_rst_data
     );
 
-    reg_write_offset : entity dcnn.reg
+    reg_write_offset : entity work.reg
     port map(
         clk => clk,
         reset => write_offset_reset,
@@ -268,7 +268,7 @@ begin
     );
 
     
-    reg_result_addr : entity dcnn.reg
+    reg_result_addr : entity work.reg
     port map(
         clk => clk,
         reset => result_addr_reset,
@@ -279,7 +279,7 @@ begin
 
     );
     
-    ctr_channel : entity dcnn.counter
+    ctr_channel : entity work.counter
     generic map (
         N => 3
     )
@@ -296,7 +296,7 @@ begin
 
     -- for counting 10 entries to the Argmax unit.
 
-    cntr_class : entity dcnn.Counter
+    cntr_class : entity work.Counter
     generic map (
         N => 4
     ) 
@@ -311,7 +311,7 @@ begin
         
     );
     -- holds the base address where the 10 results of the FC exist.
-    reg_class_base : entity dcnn.reg
+    reg_class_base : entity work.reg
     port map(
         clk => clk,
         reset => argmax_base_reset,
