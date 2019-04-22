@@ -17,18 +17,33 @@ architecture Behavioral of Ram is
 	type ram_type is array (0 to 65535) of std_logic_vector(15 downto 0);
 	signal ram : ram_type := (
 		--R0=0,...,R5=5
-		0 => X"0003",
-		1 => X"0015",
-		2 => X"1001",
-		3 => X"2002",
-		4 => X"3003",
-		5 => X"4004",
-		6 => X"5005",
-		7 => X"6006",
-		8 => X"7007",
-		9 => X"8008",
-		10 => X"9009",
-		11 => X"A00A",
+		0 => X"0001", -- number of layers
+		-- Start of Layer 1
+		1 => X"0000", -- layer type (0: Conv, 1: Pool, 2: FC)
+		2 => X"0002", -- Number of filters in layer
+		3 => X"0003", -- Filter size
+		4 => X"001A", -- New Layer Width
+		5 => X"02A4", -- (New Layer Width)^2
+		6 => X"0548", -- (New Layer Width)^2 * Number of filters in layer
+		7 => X"0001", -- start of filter 1
+		8 => X"0002", 
+		9 => X"0003",
+		10 => X"0004",
+		11 => X"0005",
+		12 => X"0006",
+		13 => X"0007",
+		14 => X"0008",
+		15 => X"0009", -- end of filter 1
+		16 => X"000A", -- start of filter 2
+		17 => X"000B",
+		18 => X"000C",
+		19 => X"000D",
+		20 => X"000E",
+		21 => X"000F",
+		22 => X"0010",
+		23 => X"0011",
+		24 => X"0012", -- end of filter 2
+		
 		others => X"BBBB"
 	);
 	begin
