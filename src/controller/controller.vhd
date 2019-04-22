@@ -206,10 +206,10 @@ begin
     actual_next_state <= next_state when reset = '0' else fetch_nlayers;
     img_height_out <= img_width_out;
     not_clk <= "not"(clk);
-    cache_width_1 <= std_logic_vector(unsigned(img_width_out) - 1); --zeiabo i changd it to -1?--cache_width - 1;
-    cache_height_1 <= std_logic_vector(unsigned(img_height_out) - 1);
+    cache_width_1(4 downto 0) <= std_logic_vector(unsigned(img_width_out) - 1); --zeiabo i changd it to -1?--cache_width - 1;
+    cache_height_1(4 downto 0) <= std_logic_vector(unsigned(img_height_out) - 1);
     --Three by Three filter
-    filter_tbt<='1' when flt_size_out = std_logic_vector(to_signed(3, 16))
+    filter_tbt<='1' when flt_size_out = std_logic_vector(to_signed(3, 3))
     else '0' ; 
 
     -- Layer Information Components
@@ -551,7 +551,7 @@ begin
                     if cache_width_ended_o = '0' then --add pixel to cache
                         addr1_enable <= '1';
                         mem_addr_out <= std_logic_vector(unsigned(base_addr) + unsigned(addr1_data));
-                        mem_read_out <= '1';
+                        mem_read <= '1';
                         cache_data_in <= mem_data_in;
                         cache_load <= '1';
 
@@ -566,7 +566,7 @@ begin
                         end if;
                     else --inner loop ended
                         addr1_enable <= '0';
-                        mem_read_out <= '0';
+                        mem_read <= '0';
                         cache_load <= '0';
                         cache_width_count_en <= '0';
                         cache_width_count_rst <= '1';
@@ -657,7 +657,7 @@ begin
             if  edged_o='0' then
                 addr1_enable<='1'; 
                 addr1_mode<='0'; -- given that it is a counter that only jumps +1
-                mem_read_out<='1';
+                mem_read <='1';
                 mem_addr_out <= std_logic_vector(unsigned(base_addr) + unsigned(addr1_data));
                 cache_data_in<=mem_data_in;
                 cache_load<='1';
@@ -667,7 +667,7 @@ begin
                 cache_load<='1';
                 cache_data_in<=(others=>'0'); --insert 0
                 addr1_enable<='0'; 
-                mem_read_out<='0';
+                mem_read <='0';
                 -- edged<='0';
 
 
@@ -695,7 +695,7 @@ begin
             cache_width_count_en<='0';
             cache_height_count_en<='0';
             addr1_enable<='0'; 
-            mem_read_out<='0';
+            mem_read <='0';
 
             -- next_state<=fetch_to_cache;
 

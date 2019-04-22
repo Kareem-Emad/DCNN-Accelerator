@@ -7,7 +7,7 @@ end RamTB;
 
 architecture TB of RamTB is
     signal clk, read_in, write_in : std_logic := '0';
-    signal address : std_logic_vector(7 downto 0) := (others => 'Z');
+    signal address : std_logic_vector(15 downto 0) := (others => 'Z');
     signal data_in, data_out : std_logic_vector(15 downto 0) := (others => 'Z');
     constant period : time := 1 ns;
 
@@ -27,7 +27,7 @@ begin
         wait for period;
         write_in <= '1';
         data_in <= X"0123";
-        address <= X"00";
+        address <= X"0000";
         read_in <= '1';
         wait for period;
         write_in <= '0';

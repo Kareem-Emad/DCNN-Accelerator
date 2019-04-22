@@ -45,7 +45,7 @@ begin
             io_done_out => io_done,
             mem_data_in => data_outof_mem,
             mem_data_out => data_into_mem,
-            mem_addr_out => addr,
+            mem_addr_out => address,
             mem_read_out => read_mem,
             mem_write_out => write_mem,
             filter_data_out => filter_data
