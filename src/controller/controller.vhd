@@ -11,22 +11,37 @@ entity Controller is
         HREG: natural := 16 --for now since i don't know how big the FC stage img is
         );
     port (
-        clk             :   in  std_logic;
-        io_ready_in     :   in  std_logic;
-        io_done_out     :   out std_logic;
-        mem_data_in     :   in  std_logic_vector(N - 1 downto 0);
-        mem_data_out    :   out std_logic_vector(N - 1 downto 0);
-        mem_addr_out    :   out std_logic_vector(M - 1 downto 0);
-        mem_write_out   :   out std_logic;
-        mem_read_out    :   out std_logic;
-        filter_data_out :   out std_logic_vector(N-1 downto 0)
+        clk                 :   in  std_logic;
+        reset               :   in  std_logic; -- to-do: OR all other resets with this.
+        io_ready_in         :   in  std_logic;
+        io_done_out         :   out std_logic;
+        mem_data_in         :   in  std_logic_vector(N - 1 downto 0);
+        mem_data_out        :   out std_logic_vector(N - 1 downto 0);
+        mem_addr_out        :   out std_logic_vector(M - 1 downto 0);
+        mem_write_out       :   out std_logic; -- writes into memory
+        mem_read_out        :   out std_logic; -- reads from memory
+        filter_data_out     :   out std_logic_vector(N-1 downto 0);
+        filter_ready_out    :   out std_logic;
+	    comp_unit_ready     :   out std_logic;
+	    comp_unit_data1     :   out std_logic_vector(N-1 downto 0);
+	    comp_unit_data2     :   out std_logic_vector(N-1 downto 0)
     );
 end Controller;
 
 architecture Mixed of Controller is
     type state_type is (
-        init_filter_window,
-        init_image_cache,
+        fetch_nlayers,
+        fetch_layer_info_1,
+        fetch_layer_info_2,
+        fetch_layer_info_3,
+        fetch_layer_info_4,
+        fetch_layer_info_5,
+        fetch_layer_info_6,
+        fetch_layer_info_7,
+        init_filter_window_1,
+        init_filter_window_2,
+        init_image_cache_1,
+        init_image_cache_2,
         start_convolution,
         fetch_to_cache,
         fetch_to_image_window,
@@ -35,284 +50,333 @@ architecture Mixed of Controller is
         write_classification,
         end_state
     );
-    signal current_state : state_type := init_filter_window;
-    signal next_state : state_type := init_image_cache;
 
+    -- State signals
+    signal current_state : state_type := fetch_nlayers;
+    signal next_state : state_type := fetch_layer_info_1;
+    signal actual_next_state : state_type := fetch_layer_info_1;
 
-    --for implementation optimization
-    signal filter_tbt_out: std_logic; -- state signal
-    signal add_upper_limit_in: std_logic_vector(M-1 downto 0):=(others=>'1');
-   
-    --Signals between states
-    signal edged: std_logic;
-    signal second_fetch: std_logic;
-    signal img_channel_done: std_logic;
+    -- General-purpose reset signal.
+    signal gen_reset : std_logic := '0'; 
 
-    --connected to cache col counter (normal counter)
-    signal cache_col_max_reached_out: std_logic;
-    signal cache_col_counter_en: std_logic;
-    signal cache_col_counter_mode_in: std_logic;
-    signal cache_col_counter_rst: std_logic;
-    signal cache_col_counter_out: std_logic_vector(WREG-1 downto 0);
+    -- Generic Counter
+    signal cntr1_reset : std_logic := '0';
+    signal cntr1_reset_new : std_logic := '0';
+    signal cntr1_enable : std_logic := '1';
+    signal cntr1_mode : std_logic := '0';
+    signal cntr1_max_val : std_logic_vector(5 downto 0) := (others => '1');
+    signal cntr1_max_reached : std_logic := 'Z';
+    signal cntr1_data : std_logic_vector(5 downto 0) := (others => 'Z');
 
+    -- Memory Addressing
+    signal addr1_reset : std_logic := '0';
+    signal addr1_enable : std_logic := '1';
+    signal addr1_mode : std_logic := '0';
+    signal addr1_max_reached : std_logic := 'Z';
+    signal addr1_data : std_logic_vector(M-1 downto 0) := (others => 'Z');
+    signal write_mem_to_fltr : std_logic := '0';
+    signal mem_read, mem_write : std_logic;
 
+    -- Layer information signals
+    signal nlayers_counter_enable : std_logic := '0';
+    signal nlayers_load : std_logic := '0';
+    signal nlayers_data_load : std_logic_vector(2 downto 0) := "000";
+    signal nlayers_max_reached : std_logic := '0';
+    signal nlayers_out : std_logic_vector(2 downto 0);
 
-    --conected to cache row counter (aadvancd counter)
-    signal cache_rows_max_reached_out: std_logic;
-    signal cache_rows_counter_en: std_logic;
-    signal cache_rows_counter_mode_in: std_logic_vector(1 downto 0);
-    signal cache_rows_counter_rst: std_logic;
-    signal cache_rows_counter_out: std_logic_vector(HREG-1 downto 0);-- here for simul, not used , should be open.
-
-
-    --connected to memory address counter (normal counter)
-    signal current_add_counter_mode_in: std_logic;
-    signal current_add_counter_out: std_logic_vector(M-1 downto 0);
-    signal current_add_counter_en: std_logic;
-    signal current_add_counter_rst: std_logic;
-
+    signal layer_type_load : std_logic := '0';
+    signal layer_type_data_load : std_logic_vector(1 downto 0) := "00";
+    signal layer_type_out : std_logic_vector(1 downto 0);
+    signal IsPoolLayer, IsConvLayer, IsFCLayer : std_logic;
     
-    --connected to memory
-    -- signal mem_read_in: std_logic;
-    -- signal mem_write_in: std_logic;
-    -- signal mem_data_out: std_logic_vector(N -1 downto 0);
-    -- signal mem_data_in: std_logic_vector(N -1 downto 0);
+    signal nflt_layer_enable : std_logic := '0';
+    signal nflt_layer_load : std_logic := '0';
+    signal nflt_layer_data_load : std_logic_vector(3 downto 0) := "0000";
+    signal nflt_layer_max_reached : std_logic;
+    signal nflt_layer_out : std_logic_vector(3 downto 0);
 
+    signal flt_size_load : std_logic := '0';
+    signal flt_size_data_load : std_logic_vector(2 downto 0) := "000";
+    signal flt_size_out : std_logic_vector(2 downto 0);
+    
+    signal new_width_load : std_logic := '0';
+    signal new_width_data_load : std_logic_vector(4 downto 0) := "00000";
+    signal new_width_out : std_logic_vector(4 downto 0);
 
-    --connected to cache
-    signal cache_en: std_logic;
-    signal cache_in: std_logic_vector(N-1 downto 0);
-    signal cache_col_out: std_logic_vector((N*5)-1 downto 0);
-    signal cache_rst: std_logic;
+    signal new_size_squared_load : std_logic := '0';
+    signal new_size_squared_data_load : std_logic_vector(15 downto 0) := (others => '0');
+    signal new_size_squared_out : std_logic_vector(15 downto 0);
+    
+    signal layer_mem_size_load : std_logic := '0';
+    signal layer_mem_size_data_load : std_logic_vector(15 downto 0) := (others => '0');
+    signal layer_mem_size_out : std_logic_vector(15 downto 0);
 
-    --connected to window col counter (normal counter)
-    signal wind_col_max_reached_out: std_logic;
-    signal wind_col_counter_en: std_logic;
-    signal wind_col_counter_mode_in: std_logic;
-    signal wind_col_counter_rst: std_logic;
-    signal wind_col_counter_out: std_logic_vector(WREG-1 downto 0);
+    signal num_channels_enable : std_logic := '0';
+    signal num_channels_load : std_logic := '0';
+    signal num_channels_data_load : std_logic_vector(2 downto 0) := (others => '0');
+    signal num_channels_max_reached : std_logic;
+    signal num_channels_out : std_logic_vector(2 downto 0);
+    
+    signal img_width_load : std_logic := '0';
+    signal img_width_data_load : std_logic_vector(4 downto 0) := (others => '0');
+    signal img_width_out : std_logic_vector(4 downto 0);
+    signal img_height_out : std_logic_vector(4 downto 0);
 
-
-    --connected to window
-    signal wind_en: std_logic;
-    signal wind_col_in: std_logic_vector((N*5)-1 downto 0);
-    signal wind_rst: std_logic;
-    signal wind_col_out
-    --conected to image width register 
-    signal img_width_out: std_logic_vector(WREG-1 downto 0);
-
-    --connected to img height reg
-    signal img_height_out: std_logic_vector(HREG-1 downto 0);
-
-
-
-
+    -- Cache Signals
+    signal max_width : std_logic_vector(4 downto 0);
+    signal max_height : std_logic_vector(4 downto 0);
     
 
-
-
-
-
-
-    
 begin
-    -- Port Maps
-    cache_col_counter: entity dcnn.Counter
-                        generic map(
-                            WREG --map number of columns is 28
-                        )
-                        port map(
-                            clk=>clk,
-                            reset=> cache_col_counter_rst,
-                            enable=> cache_col_counter_en,
-                            mode_in=> cache_col_counter_mode_in,
-                            max_val_in=>img_width_out,
-                            max_reached_out=>cache_col_max_reached_out,
-                            counter_out=>cache_col_counter_out
-                        );
+    filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
+    filter_ready_out <= '1' when write_mem_to_fltr = '1' else '0';
+    IsPoolLayer <= '1' when layer_type_out = "01" else '0';
+    IsConvLayer <= '1' when layer_type_out = "00" else '0';
+    IsFCLayer <= '1' when layer_type_out = "10" else '0';
+    gen_reset <= reset;
+    mem_read_out <= mem_read when reset = '0' else '0';
+    mem_write_out <= mem_write when reset = '0' else '0';
+    actual_next_state <= next_state when reset = '0' else fetch_nlayers;
+    img_height_out <= img_width_out;
 
-    cache_rows_counter: entity dcnn.AdvancedCounter
-                        generic map(
-                            HREG
-                        )
-                        port map(
-                            clk=>clk,
-                            reset=> cache_rows_counter_rst,
-                            enable=> cache_rows_counter_en,
-                            mode_in=> cache_rows_counter_mode_in,
-                            max_val_in=>img_height_out,
-                            max_reached_out=>cache_rows_max_reached_out,
-                            counter_out=>cache_rows_counter_out
-                        );
+    -- Layer Information Components
+    nlayers : entity dcnn.LoadedCounter
+    generic map (N => 3)
+    port map (
+        clk => clk, reset => gen_reset, enable => nlayers_counter_enable,
+        load => nlayers_load, mode_in => '1', max_val_in => "000",
+        load_data_in => nlayers_data_load, max_reached_out => nlayers_max_reached,
+        counter_out => nlayers_out
+    );
+    
+    layer_type : entity dcnn.Reg
+    generic map (N => 2)
+    port map (
+        clk => clk, reset => gen_reset, load => layer_type_load, 
+        d => layer_type_data_load, q => layer_type_out, rst_data => "00"
+    );
 
-    current_add_counter: entity dcnn.Counter
-                        generic map(
-                            M
-                        )
-                        port map(
-                            clk=>clk,
-                            reset=> current_add_counter_rst,
-                            enable=> current_add_counter_en,
-                            mode_in=> current_add_counter_mode_in,
-                            max_val_in=>add_upper_limit_in,
-                            max_reached_out=>open,
-                            counter_out=>current_add_counter_out
-                        );
+    nflt_layer : entity dcnn.LoadedCounter
+    generic map (N => 4)
+    port map (
+        clk => clk, reset => gen_reset, enable => nflt_layer_enable,
+        load => nflt_layer_load, mode_in => '1', max_val_in => "0000",
+        load_data_in => nflt_layer_data_load, max_reached_out => nflt_layer_max_reached,
+        counter_out => nflt_layer_out
+    );
 
-    -- ram: entity dcnn.Ram
-    --                     port map(
-    --                         clk=>clk,
-    --                         read_in=>mem_read_in,
-    --                         write_in=>mem_write_in,
-    --                         address_in=>current_add_counter_out,
-    --                         data_in=>mem_data_in,
-    --                         data_out=>mem_data_out
-    --                     );
+    flt_size : entity dcnn.Reg
+    generic map (N => 3)
+    port map (
+        clk => clk, reset => gen_reset, load => flt_size_load, 
+        d => flt_size_data_load, q => flt_size_out, rst_data => "000"
+    );
 
-    cache: entity dcnn.cache
-                        generic map(
-                            sel=>WREG,
-                            n_word=>N
-                        )
-                        port map(
-                            in_word=>cache_in,
-                            cache_in_sel=> cache_col_counter_out,
-                            cache_out_sel=>wind_col_counter_out,
-                            decode_en=>cache_en,
-                            out_column=>cache_col_out,
-                            clk=>clk,
-                            reset=>cache_rst 
-                        );
-                        
-    wind_col_counter: entity dcnn.AdvancedCounter
-                        generic map(
-                            WREG
-                        )
-                        port map(
-                            clk=>clk,
-                            reset=> wind_col_counter_rst,
-                            enable=> wind_col_counter_en,
-                            mode_in=> wind_col_counter_mode_in,
-                            max_val_in=>img_width_out,
-                            max_reached_out=>wind_col_max_reached_out,
-                            counter_out=>wind_col_counter_out
-                        );
+    new_width : entity dcnn.Reg
+    generic map (N => 5)
+    port map (
+        clk => clk, reset => gen_reset, load => new_width_load,
+        d => new_width_data_load, q => new_width_out, rst_data => "00000"
+    );
 
+    new_size_squared : entity dcnn.Reg
+    port map (
+        clk => clk, reset => gen_reset, load => new_size_squared_load,
+        d => new_size_squared_data_load,  q => new_size_squared_out, rst_data => (others => '0')
+    );
 
+    layer_mem_size : entity dcnn.Reg
+    port map (
+        clk => clk, reset => gen_reset, load => layer_mem_size_load,
+        d => layer_mem_size_data_load,  q => layer_mem_size_out, rst_data => (others => '0')
+    );
 
+    num_channels : entity dcnn.LoadedCounter
+    generic map (N => 3)
+    port map (
+        clk => clk, reset => gen_reset, enable => num_channels_enable,
+        load => num_channels_load, mode_in => '1', max_val_in => "000",
+        load_data_in => num_channels_data_load, max_reached_out => num_channels_max_reached,
+        counter_out => num_channels_out
+    );
+
+    img_width : entity dcnn.Reg
+    generic map ( N => 5 )
+    port map (
+        clk => clk, reset => gen_reset, load => img_width_load,
+        d => img_width_data_load, q => img_width_out, rst_data => "11100"
+    );
+    
+    -- Generic counter
+    cntr1_inst : entity dcnn.Counter
+    generic map (N => 6)
+    port map (
+        clk => clk,
+        reset => cntr1_reset,
+        enable => cntr1_enable,
+        mode_in => cntr1_mode,
+        max_val_in => cntr1_max_val,
+        max_reached_out => cntr1_max_reached,
+        counter_out => cntr1_data
+    );
+    
+    -- Memory addressing
+    cntr_mem_addr : entity dcnn.Counter
+    generic map (
+        N => 16
+    ) 
+    port map (
+        clk => clk,
+        reset => gen_reset,
+        enable => addr1_enable,
+        mode_in => addr1_mode,
+        max_val_in => (others => '1'),
+        max_reached_out => addr1_max_reached,
+        counter_out => addr1_data
+    );
+
+    -- Image Cache components
+    img_cache : entity dcnn.Cache
+        port map(
+            in_word => cache_data_in,
+            cache_in_sel => cache_width_count(4 downto 0),
+            cache_out_sel  => cache_out_sel(4 downto 0), --not used here
+            decoder_enable => cache_load,
+            out_column => cache_data_out,
+            clk => not_clk,
+            reset => cache_rst
+        );  
 
     -- This process computes the next state given the current state and the inputs.
-
-
-
-
-
-
-    --Three by Threee filter. Signal used in fetch to cache state
-    filter_tbt<=filter_size=std_logic_vector(to_signed(3, filter_reg_size)); --PUT OUTSIDE PROCESS
-
-
-
-    -- This process computes the next state given the current state and the inputs.
-    comp_ns : process(current_state)
+    -- It also generates the state machine outputs based on the current state.
+    comp_ns : process(current_state, addr1_data, mem_data_in, 
+    IsPoolLayer, flt_size_out, cntr1_max_reached, img_width_out)
     begin
         case current_state is
-            when init_filter_window =>
-                -- Fetch the filter window; Needs a counter.
-                -- 1: Load Filter Width
-                -- 2: Load Filter Height
-                -- 3: Load Bias
-                -- 4: If FilterWidth=3, Set Imax=9. Else Set Imax=25.
-                -- 5: Loop: for i = 0; i < Imax; i++
-                -- 6:   If Edge: Write 0. 
-                -- 7:   Else: Fetch pixel from current mem loc.
-            when init_image_cache =>
-
-            when start_convolution =>
-
-            when fetch_to_cache => -- max is  4 if number of coluns is 5
-            --assuming max reahed is raised the first time this  state is entered (from initializing the memory) 
-            --or could raise a signal that says we're just done with initialization and should start at zero
-            -- and rows are set to 0
-
-
-                if filter_tbt and cache_rows_max_reached_out ='1'and edged='0'  and cache_col_max_reached_out='1' then
-                    edged<='1'; --set edged bit
-
-                    cache_rows_counter_en='1'; 
-                    cache_rows_counter_mode_in="11"; -- to decrement 2
-                    cache_rows_counter_rst<='0';
-
-                    -- cache_col_counter_rst<='1'; -- counter rst to 0000
-                    cache_col_counter_en<='0';
-
-                    cache_en<='1';
-                    cache_in<=(others=>'0'); --insert 0
-
-                    current_address_en<='0'; 
-                    mem_read_in<='0';
-
-                elsif (( filter_tbt='1' and edged='1' ) or filter_tbt='0' )and cache_rows_max_reached_out='1'and cache_col_max_reached_out='1' 
-                    --filter ends if max col and max rows and either it is 5x5 or it is 3x3 and edge cases done
-                    edged<='0';
-                    img_channel_done<='1';
-
-                    cache_rows_counter_rst<='1'; -- rst to 0000
-                    cache_rows_counter_en='0'; 
-
-                    -- cache_col_counter_rst<='1'; -- rst to 0000
-                    cache_col_counter_en<='0';
-
-                    cache_en<='0';
-                    current_address_en<='0'; 
-                    mem_read_in<='0';
-                
+            -- Fetches the number of layers into the nlayers counter.
+            when fetch_nlayers =>
+                addr1_enable <= '1';
+                addr1_mode <= '0';
+                mem_addr_out <= addr1_data;
+                mem_read <= '1';
+                mem_write <= '0';
+                nlayers_load <= '1';
+                nlayers_data_load <= mem_data_in(2 downto 0);
+                next_state <= fetch_layer_info_1;
+            -- Fetch layer_type
+            when fetch_layer_info_1 =>
+                nlayers_load <= '0';
+                layer_type_load <= '1';
+                mem_addr_out <= addr1_data;
+                layer_type_data_load <= mem_data_in(1 downto 0);
+                next_state <= fetch_layer_info_2;
+            -- Fetch nflt_layer
+            when fetch_layer_info_2 =>
+                layer_type_load <= '0';
+                nflt_layer_load <= '1';
+                mem_addr_out <= addr1_data;
+                nflt_layer_data_load <= mem_data_in(3 downto 0);
+                next_state <= fetch_layer_info_3;
+            -- Fetch new filter size
+            when fetch_layer_info_3 =>
+                nflt_layer_load <= '0';
+                flt_size_load <= '1';
+                mem_addr_out <= addr1_data;
+                flt_size_data_load <= mem_data_in(2 downto 0);
+                next_state <= fetch_layer_info_4;
+            -- Fetch new image size
+            when fetch_layer_info_4 =>
+                flt_size_load <= '0';
+                new_width_load <= '1';
+                mem_addr_out <= addr1_data;
+                new_width_data_load <= mem_data_in(4 downto 0);
+                next_state <= fetch_layer_info_5;
+            -- Fetch new image size squared
+            when fetch_layer_info_5 =>
+                new_width_load <= '0';
+                new_size_squared_load <= '1';
+                mem_addr_out <= addr1_data;
+                new_size_squared_data_load <= mem_data_in;
+                next_state <= fetch_layer_info_6;
+            -- Fetch the total memory area taken by the following layer
+            when fetch_layer_info_6 =>
+                new_size_squared_load <= '0';
+                layer_mem_size_load <= '1';
+                mem_addr_out <= addr1_data;
+                layer_mem_size_data_load <= mem_data_in;
+                if layer_type_out = "01" then
+                    next_state <= fetch_layer_info_7;
                 else
-                    if cache_col_max_reached_out='1' then 
-                        -- cache_col_counter_rst<='1'; -- rst to 0000
-                        cache_col_counter_en<='0';
-
-                        cache_rows_counter_rst<='0';       
-                        cache_rows_counter_en='1'; 
-                        cache_rows_counter_mode_in="00"; -- to increment 1
-                    else
-                        cache_rows_counter_en='0'; 
-                        cache_col_counter_rst<='0';           
-                        cache_col_counter_en<='1';
-                        cache_col_counter_mode_in<='0'; -- +1
-                    end if;
-
-                    if edged ='0' then
-                        current_address_en<='1'; 
-                        current_address_mode_in<='0'; -- given that it is a counter that only jumps +1
-                        mem_read_in<='1';
-                        cache_in<=meme_data_out;
-                        cache_en<='1';
-                    else
-                        
-                        cache_en<='1';
-                        cache_in<=(others=>'0'); --insert 0
-                        current_address_en<='0'; 
-                        mem_read_in<='0';
-
-
-                    end if;
-
+                    next_state <= init_filter_window_1;
+                end if; 
+            -- Fetch the new number of channels (for the FC layer)
+            when fetch_layer_info_7 =>
+                layer_mem_size_load <= '0';
+                mem_addr_out <= addr1_data;
+                num_channels_enable <= '0';
+                num_channels_load <= '1';
+                num_channels_data_load <= mem_data_in(2 downto 0);
+                img_width_load <= '1';
+                img_width_data_load <= "00101"; -- i.e. 5
+                next_state <= init_filter_window_1;
+            -- Step 1 of Init filter: reset the counter, prepare for the loop
+            when init_filter_window_1 =>
+                mem_read <= '0';
+                mem_write <= '0';
+                layer_mem_size_load <= '0';
+                num_channels_load <= '0';
+                addr1_enable <= '0';
+                img_width_load <= '0';
+                -- do stuff 
+                if IsPoolLayer = '1' then
+                    next_state <= init_image_cache_1;
+                else
+                    mem_read <= '1';
+                    write_mem_to_fltr <= '1';
+                    cntr1_reset <= '1';
+                    cntr1_enable <= '0';
+                    next_state <= init_filter_window_2;
                 end if;
-    
-                --decide next state
-                if  filter_tbt='1' and second_fetch='0' and (cache_col_max_reached_out='0' or (cache_col_max_reached_out='1' and img_width_out(0)='1')) then --even with so i can fetch again
-                    next_state<=fetch_to_cache;
-                    second_fetch='1';
-
-                    if(cache_col_max_reached_out='1') then
-                        cache_col_counter_rst<='1';
-                    end if;
-
-
+            -- Step 2 of Init filter: actual loop
+            when init_filter_window_2 =>
+                cntr1_reset <= '0';
+                cntr1_enable <= '1';
+                cntr1_mode <= '0';
+                if flt_size_out = "011" then
+                    cntr1_max_val <= "001000"; -- (8 = 9 - 1)
                 else
-                    next_state<=fetch_to_image_window;
-                    second_fetch='0';
+                    cntr1_max_val <= "100100"; -- (24 = 25 - 1)
+                end if;
+                addr1_enable <= '1';
+                mem_addr_out <= addr1_data;
+                write_mem_to_fltr <= '1';
+                if cntr1_max_reached = '0' then
+                    next_state <= init_filter_window_2;
+                else
+                    next_state <= init_image_cache_1;
+                end if;
+            when init_image_cache_1 =>
+                -- Cleaning up
+                mem_read <= '0';
+                cntr1_enable <= '0';
+                addr1_enable <= '0';
+                write_mem_to_fltr <= '0';
+                -- Properly set the maximum width and height
+                max_width <= img_width_out;
+                max_height <= "0";
+                -- Reset stuff
+                cntr1_reset <= '1';
+                cntr1_enable <= '0';
+                cntr1_mode <= '0';
+                cache_rst <= '1';
+                
+                -- Next state is the loop
+                next_state <= init_image_cache_2;
+            when init_image_cache_2 =>
+                -- TO-DO: Image Cache Loop here!
+            when start_convolution =>
+		
+            when fetch_to_cache =>
                     
                     if(cache_col_max_reached_out='1') then --how sequential is process exactly?
                         cache_col_counter_rst<='1';
@@ -351,7 +415,7 @@ begin
                 end if; 
 
             when write_to_memory =>
-
+                
             when argmax_computation =>
 
             when write_classification =>
@@ -360,14 +424,13 @@ begin
                 next_state <= current_state;
             end case;
     end process;
-
     
     -- This process syncs the current state and the next state.
     -- Currently this operates on the falling edge of the clock, in-sync with the memory. Could change.
-    sync_state : process(clk)
+    sync_state : process(clk, actual_next_state)
     begin
         if falling_edge(clk) then
-            current_state <= next_state;
+            current_state <= actual_next_state;
         end if;
     end process;
 end Mixed;

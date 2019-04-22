@@ -19,4 +19,8 @@ begin
     sign2 <= (others => not(q_arr(1)(n_word-1)));
     d_arr(0) <= q_arr(0) and sign1;
     d_arr(1) <= q_arr(1) and sign2;
+
+    reset_regs_gen: for i in 2 to 24 generate
+        d_arr(i) <= (others => '0');
+    end generate;
 end Structural;
