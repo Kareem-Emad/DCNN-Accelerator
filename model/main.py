@@ -203,6 +203,8 @@ def fetch_to_image_window(cache, img_window, col, maxWidth, flt_size, should_ini
     if col >= maxWidth:
         col = 0
         should_init_window = True
+    else:
+        should_init_window = False
     return col, should_init_window
 
 
