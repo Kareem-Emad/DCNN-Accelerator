@@ -28,4 +28,8 @@ begin
         port map(
             q_arr(1), output2_init, '0', '1', d_arr(1), dummy2
         );
+    
+    reset_regs_gen: for i in 2 to 24 generate
+        d_arr(i) <= (others => '0');
+    end generate;
 end Structural;

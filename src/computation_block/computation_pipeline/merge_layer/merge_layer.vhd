@@ -36,7 +36,10 @@ begin
         port map(
             q9_1, s1, '0', '1', s2, dummy2
         );
+    d_arr(0) <= s2 when filter_size = filter5x5 else q9_1;
     d_arr(1) <= q9_2;
-    d_arr(0) <= s2 when filter_size = filter5x5 else
-                q9_1;
+    
+    reset_regs_gen: for i in 2 to 24 generate
+        d_arr(i) <= (others => '0');
+    end generate;
 end Structural;
