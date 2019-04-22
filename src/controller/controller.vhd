@@ -348,9 +348,9 @@ begin
                 cntr1_enable <= '1';
                 cntr1_mode <= '0';
                 if flt_size_out = "011" then
-                    cntr1_max_val <= "001001";
+                    cntr1_max_val <= "001000"; -- (8 = 9 - 1)
                 else
-                    cntr1_max_val <= "100101";
+                    cntr1_max_val <= "100100"; -- (24 = 25 - 1)
                 end if;
                 addr1_enable <= '1';
                 mem_addr_out <= addr1_data;
