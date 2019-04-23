@@ -126,6 +126,7 @@ begin
         port map(
             d_arr => d_arr_merge1,
             q_arr => q_arr,
+            operation => operation,
             filter_size => filter_size
         );
 

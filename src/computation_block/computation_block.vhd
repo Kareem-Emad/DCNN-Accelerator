@@ -69,7 +69,7 @@ begin
     output1 <= q_cache_arr(0);
     output2 <= q_cache_arr(1);
     
-    process(start_tmp, clk)
+    process(start_tmp, clk, reset)
     begin
         if reset = '1' then
             output1_init_q <= (others => '0');
@@ -99,6 +99,8 @@ begin
                 else
                     comp_pipe_rst <= '0';
                     comp_pipe_en <= '1';
+                    ready_tmp2 <= '1';
+                    buffer_ready_tmp2 <= '1';
                 end if;
             end if;
         end if;
