@@ -36,6 +36,7 @@ end Controller;
 
 architecture Mixed of Controller is
     type state_type is (
+        got_out_of_reset,
         fetch_nlayers,
         fetch_layer_info_1,
         fetch_layer_info_2,
@@ -537,10 +538,11 @@ begin
                 cntr1_reset <= '0';
                 cntr1_enable <= '1';
                 cntr1_mode <= '0';
-                cntr1_max_val <= ones;
+                cntr1_max_val <= ones(5 downto 0);
                 addr1_reset <= '0';
                 write_mem_to_fltr <= '0';
-            --  the nubberlayers =>
+            --  the number of layers into the nlayers counter.
+            when fetch_nlayers =>
                 addr1_enable <= '1';
                 addr1_mode <= '0';
                 mem_addr_out <= addr1_data;
