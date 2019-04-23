@@ -51,7 +51,8 @@ architecture Mixed of Controller is
         init_image_cache_2,
         preini_img_window,
         init_image_window,
-        start_convolution,
+        start_convolution_1,
+        start_convolution_2,
         fetch_to_cache,
         fetch_to_image_window,
         write_to_memory_1,
@@ -70,6 +71,7 @@ architecture Mixed of Controller is
 
     -- General-purpose reset signal.
     signal gen_reset : std_logic := '0'; 
+    signal zeros : std_logic_vector(15 downto 0);
 
     -- Generic Counter
     signal cntr1_reset : std_logic := '0';
@@ -131,6 +133,7 @@ architecture Mixed of Controller is
     signal num_channels_data_load : std_logic_vector(2 downto 0) := (others => '0');
     signal num_channels_max_reached : std_logic;
     signal num_channels_out : std_logic_vector(2 downto 0);
+    signal channel_zero : std_logic; -- contains whether or not we are in the 1st channel.
     
     signal img_width_load : std_logic := '0';
     signal img_width_data_load : std_logic_vector(4 downto 0) := (others => '0');
@@ -150,6 +153,16 @@ architecture Mixed of Controller is
     signal flt_bias2_out : std_logic_vector(N-1 downto 0) ;
     signal flt_bias2_rst_data : std_logic_vector(N-1 downto 0) ;
     
+
+    signal bias_offset_load : std_logic ;
+    signal bias_offset_data_in  : std_logic_vector(M-1 downto 0) :=(others =>'0');
+    signal bias_offset_data_out : std_logic_vector(M-1 downto 0);
+    signal bias_offset_rst_data : std_logic_vector(M-1 downto 0);
+    
+    signal bias_base_load : std_logic ;
+    signal bias_base_data_in  : std_logic_vector(M-1 downto 0) :=(others =>'0');
+    signal bias_base_data_out : std_logic_vector(M-1 downto 0) ;
+    signal bias_base_rst_data : std_logic_vector(M-1 downto 0) ;
    
 
     --connected to window col counter (normal counter)
@@ -221,17 +234,15 @@ architecture Mixed of Controller is
     signal bias2 : std_logic_vector(N-1 downto 0);
 
     -- Signals for Write To Memory
-    signal write_base_reset : std_logic ;
-    signal write_base_load : std_logic ;
-    signal write_base_data_in : std_logic_vector(M-1 downto 0) ;
+    signal write_base_load : std_logic;
+    signal write_base_data_in : std_logic_vector(M-1 downto 0);
     signal write_base_data_out : std_logic_vector(M-1 downto 0);
-    signal write_base_rst_data : std_logic_vector(M-1 downto 0) ;
+    signal write_base_rst_data : std_logic_vector(M-1 downto 0);
 
-    signal write_offset_reset : std_logic ;
-    signal write_offset_load : std_logic ;
-    signal write_offset_data_in : std_logic_vector(M-1 downto 0) ;
+    signal write_offset_load : std_logic;
+    signal write_offset_data_in : std_logic_vector(M-1 downto 0);
     signal write_offset_data_out : std_logic_vector(M-1 downto 0);
-    signal write_offset_rst_data : std_logic_vector(M-1 downto 0) ;
+    signal write_offset_rst_data : std_logic_vector(M-1 downto 0);
 
     -- Signals for Argmax computation
     signal class_cntr_enable : std_logic;
@@ -243,6 +254,7 @@ architecture Mixed of Controller is
     
 
 begin
+    zeros <= (others => '0');
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
     filter_ready_out <= '1' when write_mem_to_fltr = '1' else '0';
     IsPoolLayer <= '1' when layer_type_out = "01" else '0';
@@ -258,7 +270,7 @@ begin
     cache_width_1(4 downto 0) <= std_logic_vector(unsigned(img_width_out) - 1); --zeiabo i changd it to -1?--cache_width - 1;
     cache_height_1(4 downto 0) <= std_logic_vector(unsigned(img_height_out) - 1);
     --Three by Three filter
-    filter_tbt<='1' when flt_size_out = std_logic_vector(to_signed(3, 3))
+    filter_tbt <='1' when flt_size_out = std_logic_vector(to_signed(3, 3))
     else '0' ; 
 
     -- Layer Information Components
@@ -266,7 +278,7 @@ begin
     generic map (N => 3)
     port map (
         clk => clk, reset => gen_reset, enable => nlayers_counter_enable,
-        load => nlayers_load, mode_in => '1', max_val_in => "000",
+        load => nlayers_load, mode_in => '1', max_val_in => zeros(2 downto 0),
         load_data_in => nlayers_data_load, max_reached_out => nlayers_max_reached,
         counter_out => nlayers_out
     );
@@ -275,14 +287,14 @@ begin
     generic map (N => 2)
     port map (
         clk => clk, reset => gen_reset, load => layer_type_load, 
-        d => layer_type_data_load, q => layer_type_out, rst_data => "00"
+        d => layer_type_data_load, q => layer_type_out, rst_data => zeros(1 downto 0)
     );
 
     nflt_layer : entity dcnn.LoadedCounter
     generic map (N => 4)
     port map (
         clk => clk, reset => gen_reset, enable => nflt_layer_enable,
-        load => nflt_layer_load, mode_in => '1', max_val_in => "0000",
+        load => nflt_layer_load, mode_in => '1', max_val_in => zeros(3 downto 0),
         load_data_in => nflt_layer_data_load, max_reached_out => nflt_layer_max_reached,
         counter_out => nflt_layer_out
     );
@@ -291,7 +303,7 @@ begin
     generic map (N => 3)
     port map (
         clk => clk, reset => gen_reset, load => flt_size_load, 
-        d => flt_size_data_load, q => flt_size_out, rst_data => "000"
+        d => flt_size_data_load, q => flt_size_out, rst_data => zeros(2 downto 0)
     );
 
     new_width : entity dcnn.Reg
@@ -338,16 +350,6 @@ begin
         d => flt_bias_in,
         q =>flt_bias_out,
         rst_data => flt_bias_rst_data
-    );   
-
-    reg_flt_bias2 : entity dcnn.Reg
-    port map(
-        clk => clk,
-        reset => flt_bias2_reset,
-        load => flt_bias2_load,
-        d => flt_bias2_in,
-        q => flt_bias2_out,
-        rst_data => flt_bias2_rst_data
     );
     
     -- Generic counter
@@ -481,6 +483,30 @@ begin
         rst_data => (others=>'0')
     );
 
+
+    -- Convolution data
+    reg_bias_offset : entity dcnn.Reg
+    port map (
+        clk => clk,
+        reset => gen_reset,
+        load => bias_offset_load,
+        d => bias_offset_data_in,
+        q => bias_offset_data_out,
+        rst_data => bias_offset_rst_data
+    );
+
+    reg_bias_base : entity dcnn.Reg 
+    port map(
+        clk =>clk,
+        reset => gen_reset,
+        load => bias_base_load,
+        d => bias_base_data_in,
+        q => bias_base_data_out,
+        rst_data => bias_base_rst_data
+    );
+
+
+
     -- Write to memory.
     reg_write_base : entity dcnn.Reg
     port map(
@@ -495,7 +521,7 @@ begin
     reg_write_offset : entity dcnn.Reg
     port map(
         clk => clk,
-        reset => write_offset_reset,
+        reset => gen_reset,
         load => write_offset_load,
         d => write_offset_data_in,
         q => write_offset_data_out,
@@ -614,6 +640,7 @@ begin
                 num_channels_load <= '0';
                 img_width_load <= '0';
                 -- Actual work
+                channel_zero <= '1';
                 if IsConvLayer = '1' then
                     addr1_enable <= '1';
                     mem_read <= '1';
@@ -653,7 +680,7 @@ begin
                 cntr1_reset <= '0';
                 cntr1_enable <= '1';
                 cntr1_mode <= '0';
-                if flt_size_out = "011" then
+                if filter_tbt = '1' then
                     cntr1_max_val <= "001000"; -- (8 = 9 - 1)
                 else
                     cntr1_max_val <= "100100"; -- (24 = 25 - 1)
@@ -664,7 +691,7 @@ begin
                 if cntr1_max_reached = '0' then
                     next_state <= init_filter_window_2;
                 else
-                    next_state <= write_to_memory_1; -- should be init_image_cache
+                    next_state <= start_convolution_1; -- should be init_image_cache
                 end if;
             when init_image_cache_1 =>
                 -- Cleaning up from Init filter window
@@ -683,11 +710,47 @@ begin
                 wind_width_count_rst<='1';
                 next_state <= init_image_window;
             when init_image_window =>
-                next_state <= start_convolution;
-            when start_convolution =>
-                next_state <= fetch_to_cache;
+                next_state <= start_convolution_1;
+            when start_convolution_1 =>
+                bias1 <= (others =>'0');         
+                if  layer_type_out = "01" then -- Pooling
+                    comp_unit_ready <= '1';
+                elsif layer_type_out = "11" then -- FC
+                    bias1 <= (others =>'0');
+                elsif channel_zero = '1' and layer_type_out = "00" then
+                    bias1 <= flt_bias_out;
+                else
+                    mem_addr_out <= std_logic_vector(unsigned(write_offset_data_out) + unsigned(write_base_data_out));
+                    mem_read <= '1';
+                    bias1 <= mem_data_in;
+                    bias_offset_load <= '1';
+                    bias_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) +1);
+                end if;
+                comp_unit_data1_out <= bias1;
+                next_state <= start_convolution_2;
+            when start_convolution_2 =>
+                bias_offset_load <= '0';
+                bias2 <= (others =>'0');
+                if filter_tbt = '1' then    
+                    if channel_zero = '1'  then
+                        bias2 <= flt_bias_out;
+                    else
+                        mem_addr_out <= std_logic_vector(unsigned(bias_offset_data_out) + unsigned(write_base_data_out));
+                        mem_read <= '1';
+                        bias2 <= mem_data_in; 
+                    end if;
+                else 
+                    bias2 <= (others => '0');
+                end if; 
+                comp_unit_data2_out <= bias2;
+                comp_unit_ready <= '1';
+                next_state <= write_to_memory_1; -- should be fetch_to_cache
             when fetch_to_cache =>
-                next_state <= fetch_to_image_window;
+                -- Cleaning up
+                mem_read <= '0';
+                channel_zero <= '0';
+                -- Actual work
+                next_state <= fetch_to_cache;
             when fetch_to_image_window => 
                 next_state <= write_to_memory_1;
             when write_to_memory_1 =>

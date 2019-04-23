@@ -90,9 +90,9 @@ begin
         comp_unit_data1_in <= X"9865";
         comp_unit_data2_in <= X"4321";
         reset <= '0';
+        wait for period;
         assert(img_width_out = "11100") report "Initial image width is incorrect!";
         assert (num_channels_out = "001") report "Wrong number of channels!";
-        wait for period;
         assert(nlayers_out = "001") report "Fetching number of layers failed!";
         wait for period;
         assert(layer_type_out = "00") report "Fetching layer type failed!";
@@ -115,7 +115,12 @@ begin
             iter_v := std_logic_vector(to_unsigned(iter, 16));
             assert(filter_data = iter_v) report "Fetching filter failed! iter " & integer'image(to_integer(unsigned(iter_v))) & " filter_data = " & integer'image(to_integer(unsigned(filter_data)));
         end loop;
+        -- TO-DO: test start_convolution
         wait for period;
+        wait for period;
+        assert (comp_unit_data1_out = X"1235") report "Filter 1 output fetching failed!";
+        wait for period;
+        assert (comp_unit_data2_out = X"1235") report "Filter 2 output fetching failed!";
         assert (data_into_mem = X"9865") report "Write to memory_1 failed!";
         wait for period;
         assert (data_into_mem = X"4321") report "Write to memory_2 failed!";
@@ -124,7 +129,6 @@ begin
         wait for period;
         -- TO-DO: test initialize image cache!
         -- TO-DO: test initialize image window
-        -- TO-DO: test start_convolution
         -- TO-DO: test fetch to cache
         -- TO-DO: test fetch to image window
         -- TO-DO: test argmax computation
