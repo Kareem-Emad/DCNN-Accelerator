@@ -56,13 +56,15 @@ begin
         if reset = '1' then
             counter <= to_unsigned(1, n_states);
         else
-            if falling_edge(clk) and en = '1' then
-                if counter(state_mux) = '1' and operation = pooling then
-                    counter <= (state_add_l => '1', others => '0');
-                elsif counter(state_merge2) = '1' and compute_relu = '0' then
-                    counter <= to_unsigned(0, n_states);
-                else
-                    counter <= shift_left(counter, 1);
+            if falling_edge(clk) then
+                if en = '1' then 
+                    if counter(state_mux) = '1' and operation = pooling then
+                        counter <= (state_add_l => '1', others => '0');
+                    elsif counter(state_merge2) = '1' and compute_relu = '0' then
+                        counter <= to_unsigned(0, n_states);
+                    else
+                        counter <= shift_left(counter, 1);
+                    end if;
                 end if;
             end if;
         end if;

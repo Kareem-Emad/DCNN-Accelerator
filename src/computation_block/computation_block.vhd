@@ -37,13 +37,11 @@ architecture Structural of ComputationBlock is
     signal comp_cache_ld : std_logic := '1';
     signal comp_cache_rst : std_logic := '0';
     
-    signal buffer_ready_tmp : std_logic;
-    signal ready_tmp : std_logic;
-    signal buffer_ready_tmp2 : std_logic;
-    signal ready_tmp2 : std_logic;
     signal img_load_tmp : std_logic;
     signal filter_load_tmp : std_logic;
     signal start_tmp : std_logic;
+    signal ready_tmp : std_logic;
+    signal buffer_ready_tmp : std_logic;
 
     signal comp_pipe_rst : std_logic;
     signal comp_pipe_en : std_logic;
@@ -54,22 +52,21 @@ architecture Structural of ComputationBlock is
     signal filter_size_q : filtersize_t;
     signal operation_q : operation_t;
     signal compute_relu_q : std_logic;
-
-    signal sync_flag : std_logic;
+    signal buffer_ready_q : std_logic;
+    signal ready_q : std_logic;
+        
 begin
-    ready <= ready_tmp and ready_tmp2;
-    buffer_ready <= buffer_ready_tmp and buffer_ready_tmp2;
-    img_load_tmp <= img_load and buffer_ready_tmp;
-    filter_load_tmp <= filter_load and buffer_ready_tmp;
-    start_tmp <= start and ready_tmp;
+    img_load_tmp <= img_load and buffer_ready_q;
+    filter_load_tmp <= filter_load and buffer_ready_q;
+    start_tmp <= start and ready_q;
     -- comp cache
-    comp_cache_ld <= not(ready_tmp);
-    comp_cache_rst <= reset; 
+    comp_cache_ld <= not(ready_q);
+    comp_cache_rst <= reset;
     -- outputs
     output1 <= q_cache_arr(0);
     output2 <= q_cache_arr(1);
     
-    process(start_tmp, clk, reset)
+    process(clk, reset)
     begin
         if reset = '1' then
             output1_init_q <= (others => '0');
@@ -79,28 +76,23 @@ begin
             compute_relu_q <= '1';
             comp_pipe_rst <= '1';
             comp_pipe_en <= '0';
-            sync_flag <= '0';
         else
-            if rising_edge(start_tmp) and en = '1' then
-                output1_init_q <= output1_init;
-                output2_init_q <= output2_init;
-                filter_size_q <= filter_size;
-                operation_q <= operation;
-                compute_relu_q <= compute_relu;
-                ready_tmp2 <= '0';
-                buffer_ready_tmp2 <= '0';
-                comp_pipe_rst <= '1';
-                comp_pipe_en <= '0';
-                sync_flag <= '0';
-            end if;
             if falling_edge(clk) then
-                if sync_flag = '0' then
-                    sync_flag <= '1';
-                else
+                if en = '1' and start_tmp = '1' then
+                    output1_init_q <= output1_init;
+                    output2_init_q <= output2_init;
+                    filter_size_q <= filter_size;
+                    operation_q <= operation;
+                    compute_relu_q <= compute_relu;
                     comp_pipe_rst <= '0';
                     comp_pipe_en <= '1';
-                    ready_tmp2 <= '1';
-                    buffer_ready_tmp2 <= '1';
+                    ready_q <= '0';
+                    buffer_ready_q <= '0';
+                else 
+                    ready_q <= ready_tmp or ready_q;
+                    buffer_ready_q <= buffer_ready_tmp or buffer_ready_q;
+                    comp_pipe_rst <= ready_tmp;
+                    comp_pipe_en <= not(ready_tmp);
                 end if;
             end if;
         end if;

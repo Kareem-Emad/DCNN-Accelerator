@@ -24,7 +24,6 @@ begin
             port map(
                 d => d(i),
                 q => q(i),
-                rst_data => (others => '0'),
                 clk => clk,
                 load => load,
                 reset => reset
