@@ -66,7 +66,7 @@ architecture Mixed of Controller is
     );
 
     -- State signals
-    signal current_state : state_type := fetch_nlayers;
+    signal current_state : state_type := got_out_of_reset;
     signal next_state : state_type := fetch_layer_info_1;
     signal actual_next_state : state_type := fetch_layer_info_1;
 
@@ -545,7 +545,7 @@ begin
                 nlayers_data_load <= "000";
                 nlayers_max_reached <= zeros(0);
                 addr1_enable <= '1';
-                addr1_mode <= zeros(0);
+                -- addr1_mode <= zeros(0);
                 layer_type_load <= zeros(0);
                 layer_type_data_load <= "00";
                 nflt_layer_enable <= zeros(0);
@@ -564,38 +564,31 @@ begin
                 num_channels_data_load <= zeros(2 downto 0);
                 img_width_load <= zeros(0);
                 img_width_data_load <= zeros(4 downto 0);
-                wind_width_count <= zeros(15 downto 0);
+                -- wind_width_count <= zeros(15 downto 0);
                 wind_width_in <= zeros(15 downto 0);
                 wind_width_count_rst <= zeros(0);
                 wind_width_count_en <= zeros(0);
                 wind_width_count_mode <= zeros(0);
-                wind_wn <= zeros(0);
+                wind_en <= zeros(0);
                 wind_rst <= zeros(0);
-                cache_height_count<= zeros(15 downto 0);
+                -- cache_height_count <= zeros(15 downto 0);
                 cache_height_count_rst <= zeros(0);
                 cache_height_count_en <= zeros(0);
                 cache_height_count_mode <= zeros(1 downto 0);
                 cache_width_count <= zeros(15 downto 0);
                 cache_width_count_rst <= zeros(0);
-                cache_width_coutn_en <= zeros(0);
+                cache_width_count_en <= zeros(0);
                 cache_width_count_mode <= zeros(0);
                 cache_data_in <= (others => '0');
                 cache_out_sel <= (others => '0');
                 cache_load <= zeros(0);
                 cache_rst <= '0';
                 cache_rst_actual <= '0';
-                not_clk <= '0';
                 bias_offset_data_in <= (others => '0');
                 bias_base_data_in <= (others => '0');
-                addr1_data <= (others => '0');
+                -- addr1_data <= (others => '0');
                 base_addr <= (others => '0');
-
-
-                
-                
-
-                
-
+                next_state <= fetch_nlayers;
             --  the number of layers into the nlayers counter.
             when fetch_nlayers =>
                 addr1_enable <= '1';
