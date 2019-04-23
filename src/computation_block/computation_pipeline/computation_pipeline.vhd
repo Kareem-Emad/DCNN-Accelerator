@@ -19,7 +19,8 @@ entity ComputationPipeline is
         clk : in std_logic := '0';
         en : in std_logic := '0';
         reset : in std_logic := '0';
-        done : out std_logic := '0'
+        buffer_ready : out std_logic := '0';
+        ready : out std_logic
     );
 end ComputationPipeline;
 
@@ -52,11 +53,10 @@ architecture Behavioral of ComputationPipeline is
 begin
     process(clk, en, reset)
     begin
-        if en = '0' or reset = '1' then
+        if reset = '1' then
             counter <= to_unsigned(1, n_states);
-            done <= '0';
         else
-            if falling_edge(clk) then
+            if falling_edge(clk) and en = '1' then
                 if counter(state_mux) = '1' and operation = pooling then
                     counter <= (state_add_l => '1', others => '0');
                 elsif counter(state_merge2) = '1' and compute_relu = '0' then
@@ -64,12 +64,10 @@ begin
                 else
                     counter <= shift_left(counter, 1);
                 end if;
-                if counter = to_unsigned(0, n_states) then
-                    done <= '1';
-                end if;
             end if;
         end if;
     end process;
+    
     sel_mux <= counter(0);
     sel_mul <= counter(1) or counter(2) or counter(3) or
                 counter(4) or counter(5) or counter(6) or
@@ -79,7 +77,9 @@ begin
     sel_merge1 <= counter(13);
     sel_merge2 <= counter(14);
     sel_relu <= counter(15);
-
+    buffer_ready <= not(sel_mux) and not(sel_mul);
+    ready <= '1' when counter = to_unsigned(0, n_states) else '0';
+    
     cache_muxer_gen : entity dcnn.CacheMuxer 
         port map(
             d_arr_mux => d_arr_mux,
