@@ -20,13 +20,13 @@ begin
     adder1_gen: entity dcnn.NAdder
         generic map(n_word)
         port map(
-            q_arr(0), output1_init, '0', '1', d_arr(0), dummy1
+            q_arr(0), output1_init, '0', d_arr(0), dummy1
         );
     
     adder2_gen: entity dcnn.NAdder
         generic map(n_word)
         port map(
-            q_arr(1), output2_init, '0', '1', d_arr(1), dummy2
+            q_arr(1), output2_init, '0', d_arr(1), dummy2
         );
     
     reset_regs_gen: for i in 2 to 24 generate

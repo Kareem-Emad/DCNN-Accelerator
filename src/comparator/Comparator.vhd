@@ -24,7 +24,6 @@ architecture DataFlow of Comparator is
 			a   : in std_logic_vector(N-1 downto 0);   --First operand 
 			b   : in std_logic_vector(N-1 downto 0);   --Second operand
 			cin : in std_logic := '0';                 --Carry in bit (default = 0)
-			en  : in std_logic := '0';                 --Enable signal
 			s   : out std_logic_vector(N-1 downto 0);  --Sum (a+b)
 			cout: out std_logic                        --Carry out bit
 		);
@@ -78,7 +77,7 @@ begin
 	in1_inverted <= not(in1);
 	
 	--Perform the addition F = in0 + 1's comp(in1) + cin = in0 - in1` + 1 [Subtraction]
-	DoSubtraction: NAdder generic map(N) port map(in0, in1_inverted, '1', en, sub_res, carry_out);
+	DoSubtraction: NAdder generic map(N) port map(in0, in1_inverted, '1', sub_res, carry_out);
 
 	--Select max(in0, in1) based on the sign bit
 	--If sign bit = 0, sub_res is +ve and in0>=in1
