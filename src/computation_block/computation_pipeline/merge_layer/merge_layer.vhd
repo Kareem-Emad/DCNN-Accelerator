@@ -37,13 +37,13 @@ begin
     adder1_gen: entity dcnn.NAdder
         generic map(n_word)
         port map(
-            q9_2, q7, '0', '1', s1, dummy1
+            q9_2, q7, '0', s1, dummy1
         );
     
     adder2_gen: entity dcnn.NAdder
         generic map(n_word)
         port map(
-            q9_1, s1, '0', '1', s2, dummy2
+            q9_1, s1, '0', s2, dummy2
         );
     d_arr0_tmp <= s2 when filter_size = filter5x5 else q9_1;
     d_arr1_tmp <= q9_2;

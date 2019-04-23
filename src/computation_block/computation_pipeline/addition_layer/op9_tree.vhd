@@ -37,7 +37,7 @@ begin
             generic map(n_word)
             port map(
                 a_arr(i), b_arr(i), '0',
-                '1', s_arr(i), dummy
+                s_arr(i), dummy
             );
         end generate adders_gen;
         
