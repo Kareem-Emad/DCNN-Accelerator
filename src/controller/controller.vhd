@@ -76,32 +76,32 @@ architecture Mixed of Controller is
 
     -- Generic Counter
     signal cntr1_reset : std_logic;
-    signal cntr1_enable : std_logic := '1';
-    signal cntr1_mode : std_logic := '0';
-    signal cntr1_max_val : std_logic_vector(5 downto 0) := (others => '1');
-    signal cntr1_max_reached : std_logic := 'Z';
-    signal cntr1_data : std_logic_vector(5 downto 0) := (others => 'Z');
+    signal cntr1_enable : std_logic;
+    signal cntr1_mode : std_logic;
+    signal cntr1_max_val : std_logic_vector(5 downto 0);
+    signal cntr1_max_reached : std_logic;
+    signal cntr1_data : std_logic_vector(5 downto 0);
 
     -- Memory Addressing
-    signal addr1_reset : std_logic := '0';
-    signal addr1_enable : std_logic := '1';
-    signal addr1_mode : std_logic := '0';
-    signal addr1_max_reached : std_logic := 'Z';
+    signal addr1_reset : std_logic;
+    signal addr1_enable : std_logic;
+    signal addr1_mode : std_logic;
+    signal addr1_max_reached : std_logic;
     signal addr1_data : std_logic_vector(M-1 downto 0) := (others => 'Z');
-    signal write_mem_to_fltr : std_logic := '0';
+    signal write_mem_to_fltr : std_logic;
     signal mem_read, mem_write : std_logic;
     signal base_addr : std_logic_vector(M-1 downto 0) := (others => 'Z');
   
 
     -- Layer information signals
-    signal nlayers_counter_enable : std_logic := '0';
-    signal nlayers_load : std_logic := '0';
-    signal nlayers_data_load : std_logic_vector(2 downto 0) := "000";
-    signal nlayers_max_reached : std_logic := '0';
+    signal nlayers_counter_enable : std_logic;
+    signal nlayers_load : std_logic;
+    signal nlayers_data_load : std_logic_vector(2 downto 0);
+    signal nlayers_max_reached : std_logic;
     signal nlayers_out : std_logic_vector(2 downto 0);
 
-    signal layer_type_load : std_logic := '0';
-    signal layer_type_data_load : std_logic_vector(1 downto 0) := "00";
+    signal layer_type_load : std_logic;
+    signal layer_type_data_load : std_logic_vector(1 downto 0);
     signal layer_type_out : std_logic_vector(1 downto 0);
     signal IsPoolLayer, IsConvLayer, IsFCLayer : std_logic;
     
@@ -540,7 +540,16 @@ begin
                 cntr1_max_val <= ones;
                 addr1_reset <= '0';
                 write_mem_to_fltr <= '0';
+                nlayers_counter_enable <= '0';
+                nlayers_data_load <= "000";
+                nlayers_max_reached <= '0';
+                addr1_enable <= '1';
+                addr1_mode <= '0';
+                layer_type_load <= '0';
+                layer_type_data_load <= "00";
+
             --  the nubberlayers =>
+            when fetch_nlayers =>
                 addr1_enable <= '1';
                 addr1_mode <= '0';
                 mem_addr_out <= addr1_data;
