@@ -4,10 +4,10 @@ use dcnn.config.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity ComputationPipelineTest is
-end ComputationPipelineTest;
+entity ComputationBlockTest is
+end ComputationBlockTest;
 
-architecture Test of ComputationPipelineTest is
+architecture Test of ComputationBlockTest is
     constant period : time := 100 ps;
     constant initial_value : wordarr_t(0 to 24) := (
         std_logic_vector(to_signed(0, n_word)),
@@ -63,6 +63,7 @@ architecture Test of ComputationPipelineTest is
         std_logic_vector(to_signed(23, n_word)),
         std_logic_vector(to_signed(24, n_word))
     );
+
     signal img_data : wordarr_t(0 to 24) := initial_value;
     signal filter_data : wordarr_t(0 to 24) := initial_value2;  
     signal output1_init : word_t := std_logic_vector(to_signed(25, n_word));
@@ -124,15 +125,15 @@ begin
         wait for period;
         reset <= '0';
         wait for period * 7;
-        assert q_arr(0) = std_logic_vector(to_signed(300 + 25, n_word));
+        assert q_arr(0) = std_logic_vector(to_signed(300 / 32 + 25, n_word));
 
         filter_size <= filter3x3;
         reset <= '1';
         wait for period;
         reset <= '0';
         wait for period * 7;
-        assert q_arr(0) = std_logic_vector(to_signed(54 + 25, n_word));
-        assert q_arr(1) = std_logic_vector(to_signed(63 + 20, n_word));
+        assert q_arr(0) = std_logic_vector(to_signed(54 / 8 + 25, n_word));
+        assert q_arr(1) = std_logic_vector(to_signed(63 / 8 + 20, n_word));
     end process;
 
     gen_comp_pipeline: entity dcnn.ComputationPipeline

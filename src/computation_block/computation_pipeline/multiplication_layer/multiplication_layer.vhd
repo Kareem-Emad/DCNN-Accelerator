@@ -19,14 +19,16 @@ begin
     multipliers_gen: for i in 0 to 24 generate
         mul_gen: entity dcnn.Multiplier
             generic map(
-                float_exp
+                op1_exp => image_exp,
+                op2_exp => filter_exp,
+                out_exp => image_exp
             )
             port map(
-                img_data(i),
-                filter_data(i),
-                d_arr(i),
-                en,
-                clk
+                a => img_data(i),
+                b => filter_data(i),
+                product => d_arr(i),
+                en => en,
+                clk => clk
             );
     end generate multipliers_gen;
 end Structural;

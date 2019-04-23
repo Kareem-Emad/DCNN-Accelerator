@@ -6,7 +6,9 @@ use dcnn.config.all;
 
 entity Multiplier is
     generic(
-        exponent : integer := 0
+        op1_exp : integer := 0;
+        op2_exp : integer := 0;
+        out_exp : integer := 0
     );
     port(
         a : in word_t := (others => '0');
@@ -19,6 +21,7 @@ end entity Multiplier;
 
 architecture Structural of Multiplier is
     signal long_product : signed(31 downto 0);
+    constant shift : integer := op1_exp + op2_exp - out_exp;
 begin
     mul_gen: entity dcnn.ModifiedBoothMultiplier
         port map(
@@ -28,5 +31,5 @@ begin
             long_product,
             clk
         );
-    product <= std_logic_vector(long_product(15+exponent downto exponent));
+    product <= std_logic_vector(long_product(15+shift downto shift));
 end architecture Structural;

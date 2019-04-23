@@ -10,9 +10,6 @@ use dcnn.config.all;
 -------------------------------------------------------------------------------
 
 entity Op7Tree is
-    generic(
-        op_type : natural := adder_id
-    );
     port(
         d_arr : out wordarr_t(0 to 6);
         q_arr : in wordarr_t(0 to 6)
@@ -31,22 +28,11 @@ begin
             b_arr, s_arr
         );
     gen_loop: for i in 0 to 2 generate
-        adders_gen: if op_type = adder_id generate 
         adder_gen: entity dcnn.NAdder
             generic map(n_word)
             port map(
                 a_arr(i), b_arr(i), '0',
-                '1', s_arr(i), dummy
+                s_arr(i), dummy
             );
-        end generate adders_gen;
-        
-        comps_gen: if op_type = comparator_id generate 
-        comp_gen: entity dcnn.NComparator
-            generic map(n_word)
-            port map(
-                a_arr(i), b_arr(i),
-                '1', s_arr(i)
-            );
-        end generate comps_gen;
     end generate;
 end Structural;

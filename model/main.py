@@ -25,10 +25,10 @@ np.set_printoptions(precision=2)
 #   Image (IMSIZExIMSIZE words)
 #
 #   Memory size needed: In the worst case, we have three 3x3 convolutional layers, each having 8 filters, followed by the FC. This is
-#   28 x 28 (image) + 27 x 27 x 8 (1st layer output) + 26 x 26 x 8 (2nd layer output) + 25 x 25 x 8 (3rd layer output) + 
-#   8 x 3 x (3 x 3 + 1) (conv layer filters) + 25 x 25 x 8 x 10 (FC layer filters) + 10 (FC Layer outputs) + 1 Argmax Output
+#   28 x 28 (image) + 26 x 26 x 8 (1st layer output) + 24 x 24 x 8 (2nd layer output) + 22 x 22 x 8 (3rd layer output) + 
+#   8 x 3 x (3 x 3 + 1) (conv layer filters) + 22 x 22 x 8 x 10 (FC layer filters) + 10 (FC Layer outputs) + 1 Argmax Output
 #   + 4 x 7 (Layer overhead)
-#   = 67303 words = 66K => 16 bit memory (!)
+#   = 53671 words = 54K => 16 bit memory (!)
 #   The following function creates that memory, populated with random numbers.
 def create_memory():
     # img = np.random.randn(IMSIZE, IMSIZE)
@@ -72,10 +72,12 @@ def create_memory():
                 for i in range(10):
                     mem = np.append(mem, np.random.randn(num_elem, num_elem))
 
-    mem = np.append(mem, img)
-    outp_addr = mem.size - img.size
-    print(mem[0:])
-    mem = np.append(mem, -92912 * np.ones(3 * IMSIZE * IMSIZE * 8))
+    # mem = np.append(mem, img)
+    # outp_addr = mem.size - img.size
+    # print(mem[0:])
+    mem = np.append(mem, np.zeros(65536 - mem.size))
+    outp_addr = 39000
+    mem[outp_addr:outp_addr + img.size] = img.flatten().copy()
     return mem, outp_addr
 
 # Start of Control Model.
@@ -118,7 +120,7 @@ def init_filter(mem, flt_size, flt_addr, IsPoolLayer):
 
 
 # Loads a widthxheight subblock of the image.
-def init_cache(mem, base_addr, offset_addr, width, height):
+def init_cache(mem, base_addr, offset_addr, width, height, rowCounter, colCounter):
     cache = np.zeros((5, IMSIZE))
     heightMax = 5
     widthMax = np.min([IMSIZE, width])
@@ -126,8 +128,14 @@ def init_cache(mem, base_addr, offset_addr, width, height):
         for w in range(widthMax):
             cache[h][w] = mem[base_addr + offset_addr]
             offset_addr = offset_addr + 1
-    img_window = cache[:, 0:5].copy()
-    return cache, img_window, offset_addr
+    return cache, True, offset_addr, 5, 0
+
+
+def init_window(cache, img_window, should_init_window, ImgWindowCol):
+    if should_init_window is True:
+        return cache[:, 0:5].copy(), 5
+    else:
+        return img_window, ImgWindowCol
 
 
 def start_convolution(mem, img_window, flt_data, current_channel, bias_base_addr, bias_offset_addr, flt_size, flt_bias, IsPoolLayer, IsFCLayer):
@@ -183,7 +191,7 @@ def fetch_to_cache(mem, cache, col, row, maxWidth, maxHeight, base_addr, offset_
     return col, row, offset_addr
 
 
-def fetch_to_image_window(cache, img_window, col, maxWidth, flt_size):
+def fetch_to_image_window(cache, img_window, col, maxWidth, flt_size, should_init_window):
     if flt_size == 3 and col < maxWidth - 2:
         n_iter = 2
     else:
@@ -194,7 +202,10 @@ def fetch_to_image_window(cache, img_window, col, maxWidth, flt_size):
         col = col + 1
     if col >= maxWidth:
         col = 0
-    return col
+        should_init_window = True
+    else:
+        should_init_window = False
+    return col, should_init_window
 
 
 def write_to_mem(mem, flt_size, outp1, outp2, write_addr_base, write_addr_offset):
@@ -228,6 +239,8 @@ def dcnn_sim(mem, outp_addr):
 
     imgWindowCol = 5
 
+    img_window = np.zeros((5, 5))
+
     # Fetch the number of layers
     nlayers = int(mem[flt_addr])
     flt_addr += 1
@@ -250,31 +263,33 @@ def dcnn_sim(mem, outp_addr):
             for ch in range(ImgChannels):
                 print("\t\tChannel %d started! Reading Image from (%d, %d)!" % (ch, img_base_addr, img_offset_addr))
                 flt_data, flt_addr = init_filter(mem, flt_size, flt_addr, IsPoolLayer)
-                cache, img_window, img_offset_addr = init_cache(mem, img_base_addr, img_offset_addr, ImgWidth, ImgHeight)
+                cache, should_init_window, img_offset_addr, rowCounter, colCounter = init_cache(mem, img_base_addr, img_offset_addr, ImgWidth, ImgHeight, rowCounter, colCounter)
                 print("Filter: \n", flt_data, flt_data.sum() * cache[0][0], "\nCache: \n", cache, "\n")
-                while write_addr_offset < NewSizeSquared:
+                while write_addr_offset != NewSizeSquared:
+                    img_window, imgWindowCol = init_window(cache, img_window, should_init_window, imgWindowCol)
                     outp1, outp2 = start_convolution(
                         mem, img_window, flt_data, ch, write_addr_base, write_addr_offset, flt_size, flt_bias, IsPoolLayer, IsFCLayer)
                     colCounter, rowCounter, img_offset_addr = fetch_to_cache(
                         mem, cache, colCounter, rowCounter, ImgWidth, ImgHeight, img_base_addr, img_offset_addr, flt_size)
-                    imgWindowCol = fetch_to_image_window(cache, img_window, imgWindowCol, ImgWidth, flt_size)
+                    imgWindowCol, should_init_window = fetch_to_image_window(
+                        cache, img_window, imgWindowCol, ImgWidth, flt_size, should_init_window)
                     write_addr_offset = write_to_mem(mem, flt_size, outp1, outp2, write_addr_base, write_addr_offset)
                 write_addr_offset = 0
-                rowCounter = 5
-                colCounter = 0
-                imgWindowCol = 5
+                # rowCounter = 5
+                # colCounter = 0
+                # imgWindowCol = 5
             print("\tFilter %d Output at Address %d:\n" % (j, write_addr_base), np.reshape(mem[write_addr_base:write_addr_base + NewSizeSquared], (NewWidth, NewHeight)), "\n")
             img_offset_addr = 0
             write_addr_base += NewSizeSquared
-            # We just finished processing the last filter of the layer. Prepare for the new layer..
-            if (j == nflt_layer - 1):
-                img_base_addr = write_addr_base_prev
-                img_offset_addr = 0
-                write_addr_base += LayerMemSize
-                write_addr_offset = 0
-                ImgChannels = nflt_layer
-                ImgHeight = NewHeight
-                ImgWidth = NewWidth
+        # We just finished processing the last filter of the layer. Prepare for the new layer..
+        # if (j == nflt_layer - 1):
+        img_base_addr = write_addr_base_prev
+        # img_offset_addr = 0
+        write_addr_base += LayerMemSize
+        write_addr_offset = 0
+        ImgChannels = nflt_layer
+        ImgHeight = NewHeight
+        ImgWidth = NewWidth
     # argmax computation goes here...
 
 
@@ -283,3 +298,21 @@ mem, outp_addr = create_memory()
 # print(mem)
 print(mem.shape)
 dcnn_sim(mem, outp_addr)
+
+# -- for i in range(nlayers):
+#             -- FetchLayerInfo()
+#             -- for j in range(nflt_layer):
+#             -- FetchFilterBias()
+#             -- for ch in range(ImgChannels):
+#             -- Init_Filter()
+#             -- Init_Cache()
+#             -- while write_addr_offset < new_size_squared:
+#             -- Init_Window()
+#             -- Start Convolution()
+#             -- Fetch To Cache()
+#             -- Fetch to Image Window()
+#             -- Write to Memory()
+#             -- clean_up_1
+#             -- (write_addr_offset=0, rowCounter=5, colCounter=0, imgWindowCol=5)
+#             -- clean_up_2
+#             -- (img_offset_addr=0, write_addr_base += NewSizeSquared, new layer prep)
