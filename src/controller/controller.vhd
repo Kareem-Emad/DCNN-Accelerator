@@ -72,10 +72,10 @@ architecture Mixed of Controller is
     -- General-purpose reset signal.
     signal gen_reset : std_logic := '0'; 
     signal zeros : std_logic_vector(15 downto 0);
+    signal ones  : std_logic_vector(15 downto 0);
 
     -- Generic Counter
-    signal cntr1_reset : std_logic := '0';
-    signal cntr1_reset_new : std_logic := '0';
+    signal cntr1_reset : std_logic;
     signal cntr1_enable : std_logic := '1';
     signal cntr1_mode : std_logic := '0';
     signal cntr1_max_val : std_logic_vector(5 downto 0) := (others => '1');
@@ -138,31 +138,32 @@ architecture Mixed of Controller is
     signal img_width_load : std_logic := '0';
     signal img_width_data_load : std_logic_vector(4 downto 0) := (others => '0');
     signal img_width_out : std_logic_vector(4 downto 0);
+    signal img_width_reset_data : std_logic_vector(4 downto 0);
     signal img_height_out : std_logic_vector(4 downto 0);
    
     -- Bias
-    signal flt_bias_reset : std_logic ;
-    signal flt_bias_load : std_logic ;
-    signal flt_bias_in : std_logic_vector(N-1 downto 0) ;
-    signal flt_bias_out : std_logic_vector(N-1 downto 0) ;
-    signal flt_bias_rst_data : std_logic_vector(N-1 downto 0) ;
+    signal flt_bias_reset : std_logic;
+    signal flt_bias_load : std_logic;
+    signal flt_bias_in : std_logic_vector(N-1 downto 0);
+    signal flt_bias_out : std_logic_vector(N-1 downto 0);
+    signal flt_bias_rst_data : std_logic_vector(N-1 downto 0);
 
-    signal flt_bias2_reset : std_logic ;
-    signal flt_bias2_load : std_logic ;
-    signal flt_bias2_in : std_logic_vector(N-1 downto 0) ;
-    signal flt_bias2_out : std_logic_vector(N-1 downto 0) ;
-    signal flt_bias2_rst_data : std_logic_vector(N-1 downto 0) ;
+    signal flt_bias2_reset : std_logic;
+    signal flt_bias2_load : std_logic;
+    signal flt_bias2_in : std_logic_vector(N-1 downto 0);
+    signal flt_bias2_out : std_logic_vector(N-1 downto 0);
+    signal flt_bias2_rst_data : std_logic_vector(N-1 downto 0);
     
 
-    signal bias_offset_load : std_logic ;
-    signal bias_offset_data_in  : std_logic_vector(M-1 downto 0) :=(others =>'0');
+    signal bias_offset_load : std_logic;
+    signal bias_offset_data_in  : std_logic_vector(M-1 downto 0) := (others =>'0');
     signal bias_offset_data_out : std_logic_vector(M-1 downto 0);
     signal bias_offset_rst_data : std_logic_vector(M-1 downto 0);
     
-    signal bias_base_load : std_logic ;
+    signal bias_base_load : std_logic;
     signal bias_base_data_in  : std_logic_vector(M-1 downto 0) :=(others =>'0');
-    signal bias_base_data_out : std_logic_vector(M-1 downto 0) ;
-    signal bias_base_rst_data : std_logic_vector(M-1 downto 0) ;
+    signal bias_base_data_out : std_logic_vector(M-1 downto 0);
+    signal bias_base_rst_data : std_logic_vector(M-1 downto 0);
    
 
     --connected to window col counter (normal counter)
@@ -255,6 +256,9 @@ architecture Mixed of Controller is
 
 begin
     zeros <= (others => '0');
+    ones <= (others => '1');
+    img_width_reset_data <= "11100";
+    write_base_rst_data <= X"9B68";
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
     filter_ready_out <= '1' when write_mem_to_fltr = '1' else '0';
     IsPoolLayer <= '1' when layer_type_out = "01" else '0';
@@ -270,15 +274,14 @@ begin
     cache_width_1(4 downto 0) <= std_logic_vector(unsigned(img_width_out) - 1); --zeiabo i changd it to -1?--cache_width - 1;
     cache_height_1(4 downto 0) <= std_logic_vector(unsigned(img_height_out) - 1);
     --Three by Three filter
-    filter_tbt <='1' when flt_size_out = std_logic_vector(to_signed(3, 3))
-    else '0' ; 
+    filter_tbt <='1' when flt_size_out = std_logic_vector(to_signed(3, 3)) else '0'; 
 
     -- Layer Information Components
     nlayers : entity dcnn.LoadedCounter
     generic map (N => 3)
     port map (
         clk => clk, reset => gen_reset, enable => nlayers_counter_enable,
-        load => nlayers_load, mode_in => '1', max_val_in => zeros(2 downto 0),
+        load => nlayers_load, mode_in => ones(0), max_val_in => zeros(2 downto 0),
         load_data_in => nlayers_data_load, max_reached_out => nlayers_max_reached,
         counter_out => nlayers_out
     );
@@ -310,26 +313,26 @@ begin
     generic map (N => 5)
     port map (
         clk => clk, reset => gen_reset, load => new_width_load,
-        d => new_width_data_load, q => new_width_out, rst_data => "00000"
+        d => new_width_data_load, q => new_width_out, rst_data => zeros(4 downto 0)
     );
 
     new_size_squared : entity dcnn.Reg
     port map (
         clk => clk, reset => gen_reset, load => new_size_squared_load,
-        d => new_size_squared_data_load,  q => new_size_squared_out, rst_data => (others => '0')
+        d => new_size_squared_data_load,  q => new_size_squared_out, rst_data => zeros
     );
 
     layer_mem_size : entity dcnn.Reg
     port map (
         clk => clk, reset => gen_reset, load => layer_mem_size_load,
-        d => layer_mem_size_data_load,  q => layer_mem_size_out, rst_data => (others => '0')
+        d => layer_mem_size_data_load,  q => layer_mem_size_out, rst_data => zeros
     );
 
     num_channels : entity dcnn.LoadedCounter
     generic map (N => 3)
     port map (
         clk => clk, reset => gen_reset, enable => num_channels_enable,
-        load => num_channels_load, mode_in => '1', max_val_in => "000",
+        load => num_channels_load, mode_in => '1', max_val_in => zeros(2 downto 0),
         load_data_in => num_channels_data_load, max_reached_out => num_channels_max_reached,
         counter_out => num_channels_out
     );
@@ -338,7 +341,7 @@ begin
     generic map ( N => 5 )
     port map (
         clk => clk, reset => gen_reset, load => img_width_load,
-        d => img_width_data_load, q => img_width_out, rst_data => "11100"
+        d => img_width_data_load, q => img_width_out, rst_data => img_width_reset_data
     );
 
     -- Filter biases
@@ -375,7 +378,7 @@ begin
         reset => gen_reset,
         enable => addr1_enable,
         mode_in => addr1_mode,
-        max_val_in => (others => '1'),
+        max_val_in => ones,
         max_reached_out => addr1_max_reached,
         counter_out => addr1_data
     );
@@ -391,27 +394,6 @@ begin
             clk => not_clk,
             reset => cache_rst_actual
         );  
-
-        
-    -- reg_cache_height : entity dcnn.Reg
-    -- port map (
-    --     clk => not_clk,
-    --     reset => cache_height_reset,
-    --     load => cache_height_load,
-    --     d => cache_height_in,
-    --     q => cache_height,
-    --     rst_data => cache_height_rst_data
-    -- );
-
-    -- reg_cache_width : entity dcnn.Reg
-    -- port map (
-    --     clk => not_clk,
-    --     reset => cache_width_reset,
-    --     load => cache_width_load,
-    --     d => cache_width_in,
-    --     q => cache_width,
-    --     rst_data => cache_width_rst_data
-    -- );
 
     cache_width_cntr : entity dcnn.Counter 
     generic map (
@@ -480,9 +462,8 @@ begin
         load => ftc_cntrl_reg_en,
         d => ftc_cntrl_reg_in,
         q => ftc_cntrl_reg_out,
-        rst_data => (others=>'0')
+        rst_data => zeros
     );
-
 
     -- Convolution data
     reg_bias_offset : entity dcnn.Reg
@@ -505,8 +486,6 @@ begin
         rst_data => bias_base_rst_data
     );
 
-
-
     -- Write to memory.
     reg_write_base : entity dcnn.Reg
     port map(
@@ -515,7 +494,7 @@ begin
         load => write_base_load,
         d => write_base_data_in,
         q => write_base_data_out,
-        rst_data => X"9B68"
+        rst_data => write_base_rst_data
     );
 
     reg_write_offset : entity dcnn.Reg
@@ -525,7 +504,7 @@ begin
         load => write_offset_load,
         d => write_offset_data_in,
         q => write_offset_data_out,
-        rst_data => X"0000"
+        rst_data => zeros
     );
     
     -- Argmax Result
@@ -554,8 +533,14 @@ begin
     class_cntr_counter_out)
     begin
         case current_state is
-            -- Fetches the number of layers into the nlayers counter.
-            when fetch_nlayers =>
+            when got_out_of_reset =>
+                cntr1_reset <= '0';
+                cntr1_enable <= '1';
+                cntr1_mode <= '0';
+                cntr1_max_val <= ones;
+                addr1_reset <= '0';
+                write_mem_to_fltr <= '0';
+            --  the nubberlayers =>
                 addr1_enable <= '1';
                 addr1_mode <= '0';
                 mem_addr_out <= addr1_data;
