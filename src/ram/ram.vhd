@@ -14,7 +14,7 @@ entity Ram is
 end entity Ram;
 
 architecture Behavioral of Ram is
-	type ram_type is array (0 to 255) of std_logic_vector(15 downto 0);
+	type ram_type is array (0 to 65536-1) of std_logic_vector(15 downto 0);
 	signal ram : ram_type := (
 		--R0=0,...,R5=5
 		0 => X"0001", -- number of layers
@@ -25,25 +25,29 @@ architecture Behavioral of Ram is
 		4 => X"001A", -- New Layer Width
 		5 => X"02A4", -- (New Layer Width)^2
 		6 => X"0548", -- (New Layer Width)^2 * Number of filters in layer
-		7 => X"0001", -- start of filter 1
-		8 => X"0002", 
-		9 => X"0003",
-		10 => X"0004",
-		11 => X"0005",
-		12 => X"0006",
-		13 => X"0007",
-		14 => X"0008",
-		15 => X"0009", -- end of filter 1
-		16 => X"000A", -- start of filter 2
-		17 => X"000B",
-		18 => X"000C",
-		19 => X"000D",
-		20 => X"000E",
-		21 => X"000F",
-		22 => X"0010",
-		23 => X"0011",
-		24 => X"0012", -- end of filter 2
-		
+		7 => X"1235", -- bias of filter 1
+		8 => X"0001", -- start of filter 1
+		9 => X"0002",
+		10 => X"0003",
+		11 => X"0004",
+		12 => X"0005",
+		13 => X"0006",
+		14 => X"0007",
+		15 => X"0008", 
+		16 => X"0009", -- end of filter 1
+		17 => X"AAAA", -- filter 2 bias
+		18 => X"000B", -- start of filter 2
+		19 => X"000C",
+		20 => X"000D",
+		21 => X"000E",
+		22 => X"000F",
+		23 => X"0010",
+		24 => X"0011", -- end of filter 2
+		-- start of image
+		39000 => X"FFFF",
+		-- start of output data
+		39784 => X"1202",
+		39785 => X"2101",
 		others => X"BBBB"
 	);
 	begin

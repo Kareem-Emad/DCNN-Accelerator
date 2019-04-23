@@ -128,11 +128,11 @@ architecture Mixed of Controller is
     signal write_offset_rst_data : std_logic_vector(M-1 downto 0) ;
 
     signal class_cntr_reset : std_logic ;
-    signal class_cntr_enable : std_logic ;
-    signal class_cntr_max_val_in : std_logic_vector(3 downto 0) ;
-    signal class_cntr_mode_in : std_logic ;
+    signal class_cntr_enable : std_logic;
+    signal class_cntr_max_val_in : std_logic_vector(3 downto 0);
+    signal class_cntr_mode_in : std_logic;
     signal class_cntr_max_reached_out : std_logic;
-    signal class_cntr_counter_out : std_logic_vector(3 downto 0) ; 
+    signal class_cntr_counter_out : std_logic_vector(3 downto 0); 
 
 
     -- base address where the 10 classification results are saved.
@@ -153,8 +153,8 @@ architecture Mixed of Controller is
     signal fltSize_squaredp3 : std_logic_vector(4 downto 0) ;
     signal write_mem_to_fltr : std_logic ;
 
-    signal bias1 : std_logic_vector(N-1 downto 0) ;
-    signal bias2 : std_logic_vector(N-1 downto 0) ;
+    signal bias1 : std_logic_vector(N-1 downto 0);
+    signal bias2 : std_logic_vector(N-1 downto 0);
 
     signal channel_ctr_reset : std_logic := '0';
     signal channel_ctr_enable  : std_logic := '0';
@@ -298,7 +298,6 @@ begin
 
 
     -- for counting 10 entries to the Argmax unit.
-
     cntr_class : entity dcnn.Counter
     generic map (
         N => 4
@@ -311,7 +310,6 @@ begin
         max_reached_out => class_cntr_max_reached_out,
         max_val_in => class_cntr_max_val_in, -- max value in is 10.
         counter_out => class_cntr_counter_out
-        
     );
     -- holds the base address where the 10 results of the FC exist.
     reg_class_base : entity dcnn.Reg
@@ -377,12 +375,12 @@ begin
             bias1 <= (others =>'0');
             bias2 <= (others =>'0');
             -- if pooling or FC, start computing! "00" for pooling, "01" for FC.
-            if flt_type_out = "00" then 
+            if layer_type_out = "00" then 
                 comp_unit_ready <= '1';
              -- check if FC, if FC use the already stored FC bias
-            elsif channel_ctr_out = "000" and flt_type_out = "01" then
+            elsif num_channels_out = "000" and layer_type_out = "01" then
                     bias1 <= (others =>'0');
-            elsif channel_ctr_out = "000" and flt_type_out = "10" then
+            elsif num_channels_out = "000" and layer_type_out = "10" then
                     bias1 <= flt_bias_out;
             else
                 mem_addr_out<= std_logic_vector(unsigned(bias_offset_data_out) + unsigned(bias_base_data_out));
@@ -397,7 +395,7 @@ begin
                 end if;
                         -- we can make that flt size take only 1 or zero.
                 if fltSize_data_out = x"0003" then    
-                    if channel_ctr_out = "000" then 
+                    if num_channels_out = "000" then 
                         bias2 <= flt_bias2_out;
                     else
                         mem_addr_out <=  std_logic_vector(unsigned(bias_offset_data_out) + unsigned(bias_base_data_out)+1);
