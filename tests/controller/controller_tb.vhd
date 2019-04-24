@@ -14,6 +14,12 @@ architecture TB of ControllerTB is
     signal filter_data : std_logic_vector(15 downto 0) := (others => 'Z');
     signal filter_ready : std_logic;
     signal io_ready : std_logic := '1';
+    signal layer_type_load : std_logic;
+    signal layer_type_data_load_0 : std_logic;
+    signal layer_type_out_0 : std_logic;
+    signal layer_type_out_1 : std_logic;
+    signal nlayers_load : std_logic;
+    signal nlayers_out_0 : std_logic;
     signal io_done : std_logic;
     signal nlayers_out : std_logic_vector(2 downto 0);
     signal layer_type_out : std_logic_vector(1 downto 0);
@@ -31,7 +37,7 @@ architecture TB of ControllerTB is
     signal argmax_ready : std_logic;
     signal argmax_data_out, argmax_data_in : std_logic_vector(15 downto 0);
     signal flt_bias_out : std_logic_vector(15 downto 0);
-    constant period : time := 1 ns;
+    constant period : time := 5 us;
 begin
     ram_inst : entity dcnn.Ram
         port map (
@@ -43,7 +49,7 @@ begin
             data_out => data_outof_mem
         );
 
-    controller_inst : entity dcnn.Controller
+    controller_inst : entity work.Controller
         port map (
             clk => clk,
             reset => reset,
@@ -74,6 +80,12 @@ begin
     begin
         -- A signal spy mirrors the value in the signal at src (1st arg) to the signal at dst (2nd arg).
         -- This is done in order to access signals in component instances.
+        init_signal_spy("/controllertb/controller_inst/layer_type_load", "/controllertb/layer_type_load");
+        init_signal_spy("/controllertb/controller_inst/layer_type_data_load_0", "/controllertb/layer_type_data_load_0");
+        init_signal_spy("/controllertb/controller_inst/layer_type_out_0", "/controllertb/layer_type_out_0");
+        init_signal_spy("/controllertb/controller_inst/layer_type_out_1", "/controllertb/layer_type_out_1");
+        init_signal_spy("/controllertb/controller_inst/nlayers_load", "/controllertb/nlayers_load");
+        init_signal_spy("/controllertb/controller_inst/nlayers_out_0", "/controllertb/nlayers_out_0");
         init_signal_spy("/controllertb/controller_inst/nlayers_out", "/controllertb/nlayers_out");
         init_signal_spy("/controllertb/controller_inst/layer_type_out", "/controllertb/layer_type_out");
         init_signal_spy("/controllertb/controller_inst/nflt_layer_out", "/controllertb/nflt_layer_out");
@@ -126,7 +138,7 @@ begin
         assert (data_into_mem = X"4321") report "Write to memory_2 failed!";
         wait for period;
         -- TO-DO: test clean_up!
-        wait for period;
+        wait for period * 10;
         -- TO-DO: test initialize image cache!
         -- TO-DO: test initialize image window
         -- TO-DO: test fetch to cache
