@@ -3,12 +3,13 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use modelsim_lib.util.all;
 library dcnn;
+use dcnn.config.all;
 
 entity ControllerTB is
 end ControllerTB;
 
 architecture TB of ControllerTB is
-    signal clk, reset, read_mem, write_mem : std_logic := '0';
+    signal clk, reset, read_mem, write_mem, not_clk : std_logic := '0';
     signal address : std_logic_vector(15 downto 0) := (others => 'Z');
     signal data_into_mem, data_outof_mem : std_logic_vector(15 downto 0) := (others => 'Z');
     signal filter_data : std_logic_vector(15 downto 0) := (others => 'Z');
@@ -31,8 +32,47 @@ architecture TB of ControllerTB is
     signal argmax_ready : std_logic;
     signal argmax_data_out, argmax_data_in : std_logic_vector(15 downto 0);
     signal flt_bias_out : std_logic_vector(15 downto 0);
+    signal window_enable : std_logic := '0';
+    signal window_rst : std_logic := '0';
+    signal window_data_in : wordarr_t(4 downto 0) := (others => (others => '0'));
+    signal d_arr : wordarr_t(4 downto 0) := (others => (others => '0'));
+    signal wind_data : wordarr_t(0 to 4) ;
+    signal q_arr : wordarr_t(0 to 24);
     constant period : time := 1 ns;
+
+    signal window_column_out : wordarr_t(0 to 24) := (
+        std_logic_vector(to_unsigned(0, n_word)),
+        std_logic_vector(to_unsigned(86, n_word)),
+        std_logic_vector(to_unsigned(84, n_word)),
+        std_logic_vector(to_unsigned(82, n_word)),
+        std_logic_vector(to_unsigned(80, n_word)),
+        std_logic_vector(to_unsigned(0, n_word)),
+        std_logic_vector(to_unsigned(40, n_word)),
+        std_logic_vector(to_unsigned(39, n_word)),
+        std_logic_vector(to_unsigned(38, n_word)),
+        std_logic_vector(to_unsigned(37, n_word)),
+        std_logic_vector(to_unsigned(0, n_word)),
+        std_logic_vector(to_unsigned(40, n_word)),
+        std_logic_vector(to_unsigned(39, n_word)),
+        std_logic_vector(to_unsigned(38, n_word)),
+        std_logic_vector(to_unsigned(37, n_word)),
+        std_logic_vector(to_unsigned(0, n_word)),
+        std_logic_vector(to_unsigned(40, n_word)),
+        std_logic_vector(to_unsigned(39, n_word)),
+        std_logic_vector(to_unsigned(38, n_word)),
+        std_logic_vector(to_unsigned(37, n_word)),
+        std_logic_vector(to_unsigned(0, n_word)),
+        std_logic_vector(to_unsigned(40, n_word)),
+        std_logic_vector(to_unsigned(39, n_word)),
+        std_logic_vector(to_unsigned(38, n_word)),
+        std_logic_vector(to_unsigned(37, n_word))
+            
+    );
+
+    signal window_column_in : wordarr_t(0 to 4);
+
 begin
+    not_clk<="not"(clk);
     ram_inst : entity dcnn.Ram
         port map (
             clk => clk,
@@ -56,6 +96,9 @@ begin
             mem_write_out => write_mem,
             filter_data_out => filter_data,
             filter_ready_out => filter_ready,
+            wind_en => window_enable,
+            wind_rst => window_rst,
+            wind_col_in => window_data_in,
             comp_unit_ready => comp_unit_ready,
             comp_unit_data1_out => comp_unit_data1_out,
             comp_unit_data2_out => comp_unit_data2_out,
@@ -64,6 +107,15 @@ begin
             argmax_ready => argmax_ready,
             argmax_data_out => argmax_data_out,
             argmax_data_in => argmax_data_in
+        );
+
+    image_window: entity dcnn.ImageWindow
+        port map (
+            d =>window_data_in,
+            q =>q_arr,
+            clk =>not_clk,
+            load=> window_enable,
+            reset =>window_rst
         );
 -- 2: Initialize memory values (maybe in the simulator?)
 -- 3: Test the initialization of the filter window.
@@ -115,24 +167,51 @@ begin
             iter_v := std_logic_vector(to_unsigned(iter, 16));
             assert(filter_data = iter_v) report "Fetching filter failed! iter " & integer'image(to_integer(unsigned(iter_v))) & " filter_data = " & integer'image(to_integer(unsigned(filter_data)));
         end loop;
+        -- test initialize image cache
+        -- wait for period*155;
+        wait for 149 * period; --to fill cache
+        for i in 1 to 5 loop
+            window_column_in <= (
+                std_logic_vector(to_unsigned(i, n_word)),
+                std_logic_vector(to_unsigned(i, n_word)),
+                std_logic_vector(to_unsigned(i, n_word)),
+                std_logic_vector(to_unsigned(i, n_word)),
+                std_logic_vector(to_unsigned(i, n_word))
+            );
+            assert(window_column_in = window_data_in) report "Cache initialization failed!!!";
+            wait for period;
+        end loop;
         -- TO-DO: test start_convolution
-        wait for period;
-        wait for period;
-        assert (comp_unit_data1_out = X"1235") report "Filter 1 output fetching failed!";
-        wait for period;
-        assert (comp_unit_data2_out = X"1235") report "Filter 2 output fetching failed!";
-        assert (data_into_mem = X"9865") report "Write to memory_1 failed!";
-        wait for period;
-        assert (data_into_mem = X"4321") report "Write to memory_2 failed!";
-        wait for period;
+        -- wait for period;
+        -- assert (comp_unit_data1_out = X"1235") report "Filter 1 output fetching failed!";
+        -- wait for period;
+        -- assert (comp_unit_data2_out = X"1235") report "Filter 2 output fetching failed!";
+        -- assert (data_into_mem = X"9865") report "Write to memory_1 failed!";
+        -- wait for period;
+        -- assert (data_into_mem = X"4321") report "Write to memory_2 failed!";
+        -- wait for period;
+        window_column_in <= (
+            std_logic_vector(to_unsigned(2, n_word)),
+            std_logic_vector(to_unsigned(1, n_word)),
+            std_logic_vector(to_unsigned(1, n_word)),
+            std_logic_vector(to_unsigned(1, n_word)),
+            std_logic_vector(to_unsigned(1, n_word))
+        );
+        wait for period*103;
+        assert(window_column_in = window_data_in) report "Fetch to Window  failed!!!";
+        -- wait for period;
+        wait for period*99;
+        assert(window_column_out = q_arr) report "Fetch to Window  failed!!!";
         -- TO-DO: test clean_up!
-        wait for period;
-        -- TO-DO: test initialize image cache!
+    
+        
         -- TO-DO: test initialize image window
+        
         -- TO-DO: test fetch to cache
         -- TO-DO: test fetch to image window
         -- TO-DO: test argmax computation
         -- TO-DO: test write classification
+        wait for period*100000;
     end process;
 
     process is

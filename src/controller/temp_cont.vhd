@@ -543,11 +543,13 @@ begin
                 end if;
                 
             when init_image_cache_1 =>
-                -- Cleaning up
-                mem_read <= '0';
+                -- Cleaning up from Init filter window
                 cntr1_enable <= '0';
-                addr1_enable <= '0';
                 write_mem_to_fltr <= '0';
+                mem_read <= '0';
+                addr1_enable <= '0';
+                nflt_layer_enable <= '0';
+
                 -- Properly set the maximum width and height
                 -- max_width <= img_width_out;
                 max_height <= x"0005";
@@ -659,7 +661,7 @@ begin
                 else
                     wind_width_count_en <= '0';
                     wind_en <= '0';
-                    next_state <= start_convolution;   
+                    next_state <= start_convolution_1;   
                     wind_max_width<=cache_width_1; 
                 end if;
              
@@ -667,6 +669,9 @@ begin
                 next_state <= fetch_to_cache;   
 		
             when fetch_to_cache =>  
+            -- Cleaning up
+            mem_read <= '0';
+            channel_zero <= '0';
 
             --Making sure signals are correctly set
             addr1_reset<='0';
