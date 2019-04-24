@@ -415,7 +415,7 @@ begin
                 mem_addr_in<= std_logic_vector(unsigned(bias_offset_data_out) + unsigned(bias_base_data_out));
                 mem_read_out <= '1';
                 bias1 <= mem_data_out;
-                bias_offset_data_in <= std_logic_vector(unsigned(bias_offset_data_out) +1);                       
+                bias_offset_data_in <= std_logic_vector(unsigned(bias_offset_data_out) +1);
             end if;
             comp_unit_data1_out <= bias1;
             next_state <= start_convolution2;
@@ -428,10 +428,10 @@ begin
                 if tmp_max_reached_out = '1'  then
                   bias2 <= flt_bias2_out;
                 else
-                        mem_addr_in <=  std_logic_vector(unsigned(bias_offset_data_out) + unsigned(bias_base_data_out));
-                        mem_read_out <= '1';
-                        bias2 <= mem_data_out;
-                        bias_offset_data_in <= std_logic_vector(unsigned(bias_offset_data_out) +1 );
+                    mem_addr_in <=  std_logic_vector(unsigned(bias_offset_data_out) + unsigned(bias_base_data_out));
+                    mem_read_out <= '1';
+                    bias2 <= mem_data_out;
+                    bias_offset_data_in <= std_logic_vector(unsigned(bias_offset_data_out) +1 );
                     bias_offset_load <= '1'; 
                 end if;
                 else 

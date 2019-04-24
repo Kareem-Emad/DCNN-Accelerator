@@ -23,6 +23,9 @@ entity Controller is
         mem_read_out        :   out std_logic; -- reads from memory
         filter_data_out     :   out std_logic_vector(N-1 downto 0);
         filter_ready_out    :   out std_logic;
+        wind_en             :   out std_logic;
+        wind_rst            :   out std_logic;
+        wind_col_in         :   out wordarr_t(4 downto 0);
 	    comp_unit_ready     :   out std_logic;
 	    comp_unit_data1_out     :   out std_logic_vector(N-1 downto 0);
         comp_unit_data2_out     :   out std_logic_vector(N-1 downto 0);
@@ -50,6 +53,7 @@ architecture Mixed of Controller is
         fetch_filter_bias,
         init_image_cache_1,
         init_image_cache_2,
+        postini_cache,
         preini_img_window,
         init_image_window,
         start_convolution_1,
@@ -171,13 +175,6 @@ architecture Mixed of Controller is
     signal wind_width_ended : std_logic;
     signal wind_max_width: std_logic_vector(15 downto 0);
 
-    ------ for image window ----------------
-    signal wind_en: std_logic;
-    signal wind_rst : std_logic;
-    signal wind_col_in  : wordarr_t(4 downto 0);
-    signal wind_col_out : wordarr_t(24 downto 0);
-    
-    
     ------------Signals for Cache----------------
     signal cache_height_count: std_logic_vector(15 downto 0); --for cache height counter
     -- signal cache_height_in : std_logic_vector(15 downto 0) := (others => '0'); 
@@ -215,6 +212,8 @@ architecture Mixed of Controller is
     signal edged: std_logic;
     signal second_fetch: std_logic;
     signal begin_ftc: std_logic;
+    signal ini_wind: std_logic;
+    signal finish_wind_row : std_logic;
     --ftc cnrl reg out
     signal edged_o : std_logic;
     signal second_fetch_o : std_logic;
@@ -222,6 +221,8 @@ architecture Mixed of Controller is
     signal cache_width_ended_o : std_logic;
     signal wind_width_ended_o : std_logic;
     signal begin_ftc_o : std_logic;
+    signal ini_wind_o: std_logic;
+    signal finish_wind_row_o : std_logic;
      --for implementation optimization
      signal filter_tbt: std_logic; -- state signal
   
@@ -244,6 +245,11 @@ architecture Mixed of Controller is
     signal write_offset_data_in : std_logic_vector(M-1 downto 0);
     signal write_offset_data_out : std_logic_vector(M-1 downto 0);
 
+    signal img_addr_en: std_logic;
+    signal img_addr_mode: std_logic;
+    signal img_addr_max_reached: std_logic;
+    signal img_addr_offset : std_logic_vector(M-1 downto 0);
+    signal img_base_addr:  std_logic_vector(M-1 downto 0);
     -- Signals for Argmax computation
     signal class_cntr_enable : std_logic;
     signal class_cntr_max_val_in : std_logic_vector(3 downto 0);
@@ -256,8 +262,7 @@ architecture Mixed of Controller is
 begin
     zeros <= (others => '0');
     ones <= (others => '1');
-    img_width_reset_data <= "11100";
-    write_base_rst_data <= X"9B68";
+    img_base_addr <= X"9857";
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
     filter_ready_out <= '1' when write_mem_to_fltr = '1' else '0';
     IsPoolLayer <= '1' when layer_type_out = "01" else '0';
@@ -270,8 +275,8 @@ begin
     img_height_out <= img_width_out;
     not_clk <= "not"(clk);
     cache_rst_actual <= cache_rst when reset = '0' else '1';
-    cache_width_1(4 downto 0) <= std_logic_vector(unsigned(img_width_out) - 1); --zeiabo i changd it to -1?--cache_width - 1;
-    cache_height_1(4 downto 0) <= std_logic_vector(unsigned(img_height_out) - 1);
+    cache_width_1 <= (15 downto 5=>'0')&std_logic_vector(unsigned(img_width_out) - 1);
+    cache_height_1 <= (15 downto 5=>'0')&std_logic_vector(unsigned(img_height_out) - 1);
     --Three by Three filter
     filter_tbt <='1' when flt_size_out = std_logic_vector(to_signed(3, 3)) else '0'; 
     channel_zero_data_load_actual(0) <= channel_zero_data_load;
@@ -346,11 +351,12 @@ begin
         counter_out => num_channels_out
     );
 
+ 
     img_width : entity dcnn.Reg
     generic map ( N => 5 )
     port map (
         clk => clk, reset => gen_reset, load => img_width_load,
-        d => img_width_data_load, q => img_width_out, rst_data => img_width_reset_data
+        d => img_width_data_load, q => img_width_out, rst_data =>  "11100"
     );
 
     channel_zero : entity dcnn.Reg
@@ -398,13 +404,26 @@ begin
         max_reached_out => addr1_max_reached,
         counter_out => addr1_data
     );
+    img_mem_addr_offset : entity dcnn.Counter
+    generic map (
+        N => 16
+    ) 
+    port map (
+        clk => clk,
+        reset => gen_reset,
+        enable => img_addr_en,
+        mode_in => img_addr_mode,
+        max_val_in => ones,
+        max_reached_out => img_addr_max_reached,
+        counter_out => img_addr_offset
+    );
 
     -- Image Cache components
     img_cache : entity dcnn.Cache
         port map(
             in_word => cache_data_in,
             cache_in_sel => cache_width_count(4 downto 0),
-            cache_out_sel  => cache_out_sel(4 downto 0), --not used here
+            cache_out_sel  =>wind_width_count(4 downto 0), --not used here
             decoder_enable => cache_load,
             out_column => cache_data_out,
             clk => not_clk,
@@ -456,6 +475,8 @@ begin
 
 
     ---making a control reg for the sake of homogienity inside states
+    
+
     ftc_cntrl_reg_in<= 
                     edged & --15
                     second_fetch & --14
@@ -463,13 +484,17 @@ begin
                     cache_width_ended & --12
                     wind_width_ended & --11
                     begin_ftc & --10
-                    (9 downto 0 =>'0');
+                    ini_wind & --9
+                    finish_wind_row & --8
+                    (7 downto 0 =>'0');
 
     (edged_o,second_fetch_o,
     cache_height_ended_o,
     cache_width_ended_o,
     wind_width_ended_o,
-    begin_ftc_o) <= ftc_cntrl_reg_out(15 downto 10);
+    begin_ftc_o,
+    ini_wind_o,
+    finish_wind_row_o) <= ftc_cntrl_reg_out(15 downto 8);
 
     ftc_cntrl_reg : entity dcnn.Reg
     port map (
@@ -613,6 +638,8 @@ begin
         cache_height_count_en <= '0';
         cache_height_count_mode <= "00";
         max_height <= X"001C"; -- Is this real?
+        edged <= edged_o;
+        
         -- Image window
         wind_width_in <= (others => '0');
         wind_width_count_rst <= '1';
@@ -764,12 +791,132 @@ begin
                 if cntr1_max_reached = '0' then
                     next_state <= init_filter_window_2;
                 else
-                    next_state <= start_convolution_1;
+                    next_state <= init_image_cache_1; -- should be init_image_cache
                 end if;
             when init_image_cache_1 =>
+                -- Cleaning up from Init filter window
+                cntr1_enable <= '0';
+                write_mem_to_fltr <= '0';
+                mem_read <= '0';
+                addr1_enable <= '0';
+                nflt_layer_enable <= '0';
+
+                -- Properly set the maximum width and height
+                max_height <= x"0005";
+                -- Reset stuff
+                cntr1_reset <= '1';
+                ftc_cntrl_reg_rst <= '1';--reset control register
+                ftc_cntrl_reg_en <= '0';
+                cache_rst <= '1'; --reset cache and its counters
+                cache_width_count_rst <= '1';
+                cache_width_count_mode <= '0';
+                cache_height_count_rst <= '1';
+                cache_height_count_mode <= "00";
+                -- Next state is the loop
+                next_state <= init_image_cache_2;
+
             when init_image_cache_2 =>
-            when preini_img_window =>
+                max_height <= x"0005";
+                cache_height_count_mode <= "00";
+                cache_width_count_mode <= '0';
+                cache_rst <= '0';
+                ftc_cntrl_reg_rst <= '0';
+                ftc_cntrl_reg_en <= '1';
+
+                if cache_height_ended_o = '0' then 
+                    if cache_width_ended_o = '0' then --add pixel to cache
+                        img_addr_en <= '1';
+                        img_addr_mode<= '0';
+                        mem_addr_out <= std_logic_vector(unsigned(img_base_addr) + unsigned(img_addr_offset));
+                        mem_read <= '1';
+                        cache_data_in <= mem_data_in;
+                        cache_load <= '1';
+
+                        cache_height_count_en <= '0';
+                        cache_width_count_rst <= '0';
+                        if begin_ftc_o='0' then  -- starting new row   
+                            cache_width_count_en<='0';
+                            begin_ftc<='1';
+                        else
+                            cache_width_count_en<='1';
+                            begin_ftc<='1';
+                        end if;
+                    else --inner loop ended
+                        img_addr_en <= '0';
+                        mem_read <= '0';
+                        cache_load <= '0';
+                        cache_width_count_en <= '0';
+                        cache_width_count_rst <= '1';
+                        begin_ftc <= '0';
+
+                        cache_height_count_en <= '1';
+                        cache_height_count_rst <= '0';
+
+                    end if;
+                    next_state <= current_state;
+                else --outer loop ended
+                    cache_width_count_rst <= '1'; --resetting for next states 
+                    cache_height_count_en <= '0';
+                    next_state <= postini_cache;
+                    wind_width_count_rst <= '1';
+                    ini_wind <= '1';
+                    edged <= '0';
+                    second_fetch<='0';
+                    img_addr_en <= '0';
+                
+                end if;
+            when postini_cache=> -- setting up what is needed for next states (fetch to cache, i need to dec height)
+                -- ftc_cntrl_reg_rst <= '1'; --for fetch to cache
+                -- -1 height 1 to prepare for fetch to cache
+                next_state <= preini_img_window;
+            
+            when preini_img_window => --for the sake of reusing this state for fetch to wind
+                -- Cleaning up
+                num_channels_enable <= '0';
+                write_offset_load <= '0';
+                -- Preparing
+                -- wind_max_width <= x"0004";
+                cache_height_count_en <= '0';
+                ftc_cntrl_reg_rst <= '0'; 
+                ftc_cntrl_reg_en<='1';
+                if finish_wind_row_o = '1' then
+                    next_state<= fetch_to_cache;
+                elsif ini_wind_o     ='1' then
+                    next_state <= init_image_window;
+                    wind_width_count_rst<='1';
+                else
+                    next_state<= start_convolution_1;
+                    wind_width_count_rst<='0';
+                end if;
+                
             when init_image_window =>
+                ftc_cntrl_reg_en<='1';
+                img_addr_en <= '0';
+                
+                wind_rst<='0';                
+                cache_height_count_en <= '0';
+                if wind_width_ended_o = '0' then  --If window_col_count != 5
+                wind_max_width <= x"0004";
+                    wind_col_in<= cache_data_out;
+                    wind_en <= '1';
+
+                    wind_width_count_rst<='0';
+                    if ini_wind_o='1' then
+                        ini_wind<='0';
+                        wind_width_count_en <= '0';
+                    else
+                        wind_width_count_en <= '1';
+                    end if;
+                    
+                    wind_width_count_mode<='0';
+                    next_state <= current_state;
+                else
+                    wind_width_count_en <= '0';
+                    wind_en <= '0';
+                    next_state <= start_convolution_1;   
+                    wind_max_width<=cache_width_1; 
+                end if;
+         
             when start_convolution_1 =>
                 bias1 <= (others => '0');
                 if IsPoolLayer = '1' then -- Pooling
@@ -806,9 +953,151 @@ begin
                 end if;
                 comp_unit_data2_out <= bias2;
                 comp_unit_ready <= '1';
-                next_state <= fetch_to_cache;
-            when fetch_to_cache =>
-            when fetch_to_image_window =>
+                next_state <= fetch_to_cache; -- should be fetch_to_cache
+            when fetch_to_cache =>  
+                -- Cleaning up
+                mem_read <= '0';
+                channel_zero <= '0';    
+                --Making sure signals are correctly set
+                ftc_cntrl_reg_en<='1';
+                ftc_cntrl_reg_rst<='0'; ----must be reset at end on ini windowwwww please.
+                max_height<=cache_height_1;
+             
+                wind_en <= '0';
+                --Deciding when to incremend counters (height and width)
+                if cache_width_ended_o='1' then 
+                    cache_width_count_rst<='1'; -- rst to 0000
+                    cache_width_count_en<='0';
+                    finish_wind_row<='0';
+                    wind_width_count_rst<='1'; -- rst to 0000
+                    ini_wind<='1';
+                    begin_ftc<='0';
+    
+                    if cache_height_ended_o='0' then
+                        cache_height_count_rst<='0';       
+                        cache_height_count_en<='1'; 
+                        cache_height_count_mode<="00"; -- to increment 1
+                        
+                    else
+                        cache_height_count_en<='0'; 
+                    end if;
+
+                    next_state<=write_to_memory_1;
+                    second_fetch<='0';
+                     
+                else
+                    ini_wind<='0';
+                    cache_height_count_en<='0'; 
+                    cache_width_count_rst<='0';
+    
+    
+                    if begin_ftc_o='0' then         
+                        cache_width_count_en<='0';
+                        begin_ftc<='1';
+                    else
+                        cache_width_count_en<='1';
+                        begin_ftc<='1';
+                    end if;
+                        
+                    cache_width_count_mode<='0'; -- +1
+
+                    if  filter_tbt='1' and second_fetch_o='0' then-- and (cache_width_ended_o='0' or (cache_width_ended_o='1' and cache_width(0)='1')) then --even with so i can fetch again
+                         next_state<=fetch_to_cache;
+                         second_fetch<='1';
+                   elsif finish_wind_row_o='1' then    
+                        next_state<= fetch_to_cache;
+                        second_fetch<='0';
+                    else
+                        next_state<=fetch_to_image_window;
+                        second_fetch<='0';
+                    end if;
+
+                end if;
+    
+                   --Deciding if i'm about to load 0's into cache
+                if (cache_width_ended='1' and cache_height_ended='1') or edged_o='1' then -- for self latching
+                   edged<='1';
+                else
+                   edged<='0';
+                end if;               
+                --What value will be pushed into cache
+                if  edged_o='0' then  --undefined in first time, should be pre initialized to 0 in some previouse state
+                    if cache_width_ended_o='1' then 
+                        img_addr_en <='0'; 
+                        cache_load<='0';
+                    else
+                        img_addr_en <='1'; 
+                        img_addr_mode<='0'; -- given that it is a counter that only jumps +1
+                        mem_read <='1';
+                        mem_addr_out <= std_logic_vector(unsigned(img_base_addr) + unsigned(img_addr_offset));
+                        cache_data_in<=mem_data_in;
+                        cache_load<='1';
+                    end if;
+                else    
+                    cache_load<='1';
+                    cache_data_in<=(others=>'0'); --insert 0
+                    img_addr_en <='0';
+                    mem_read <='0';
+                    
+                end if;
+                --decide next state
+                -- if  filter_tbt='1' and second_fetch_o='0' and ini_wind='0' then-- and (cache_width_ended_o='0' or (cache_width_ended_o='1' and cache_width(0)='1')) then --even with so i can fetch again
+                --     next_state<=fetch_to_cache;
+                --     second_fetch<='1';
+                -- elsif finish_wind_row_o='1' then    
+                --     next_state<= fetch_to_cache;
+                --     second_fetch<='0';
+                -- elsif ini_wind='1' then
+                --     next_state<=write_to_memory_1;
+                --     second_fetch<='0';
+                -- else 
+                --     next_state<=fetch_to_image_window;
+                --     second_fetch<='0';
+                -- end if;
+                --prepae for fetch to iimg_wind
+            when fetch_to_image_window => --assuming col counter is at 4 (first window already initialized)
+            --cache in sel is window_col_counter.
+    
+            --- I'll disable alll uneeded counterrrrss and stuff 
+                cache_load<='0';   
+                cache_width_count_en<='0';
+                cache_height_count_en<='0';
+                img_addr_en <='0'; 
+                mem_read <='0';
+                ftc_cntrl_reg_en<='1';
+                ftc_cntrl_reg_rst<='0';
+                wind_max_width<=cache_width_1; 
+                cache_out_sel<= wind_width_count;
+                if wind_width_ended_o='1' and filter_tbt='1'  then
+                    wind_en<='1';
+                    wind_col_in<=(others => (others => '0'));
+                    wind_width_count_en<='0';
+                elsif  wind_width_ended_o='0' then --because if max_reachd i need to re initialize window
+                    wind_en<='1';
+                    wind_col_in<= cache_data_out;
+                    wind_width_count_rst<='0';
+                    wind_width_count_en<='1';
+                    wind_width_count_mode<='0';
+                else
+                    wind_en<='0';
+                    wind_width_count_en<='0';
+                end if;
+       
+                --decide next state
+                if filter_tbt='1' and second_fetch_o='0' then
+                    second_fetch<='1';
+                    next_state<=fetch_to_image_window;    
+                else          
+                    if wind_width_ended_o='1' then
+                        finish_wind_row <= '1'; -- reset signal 
+                        next_state<=fetch_to_cache;
+                    else
+                        finish_wind_row <= '0';
+                        next_state<=write_to_memory_1;
+                    end if; 
+                    
+                    second_fetch<='0';  
+                end if; 
             when write_to_memory_1 =>
                 mem_data_out <= comp_unit_data1_in;
                 mem_addr_out <= std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
@@ -829,13 +1118,13 @@ begin
                 next_state <= clean_up;
             when clean_up =>
                 if not(write_offset_data_out = new_size_squared_out) then -- channel unfinished
-                    next_state <= clean_up; -- should be initialize window
+                    next_state <= preini_img_window; -- should be initialize window
                 else
                     write_offset_load <= '1';
                     write_offset_data_in <= (others => '0'); -- write_offset = 0
                     if num_channels_max_reached = '0' then -- new channel
                         num_channels_enable <= '1'; -- decrement the channel
-                        next_state <= preini_img_window;
+                        next_state <=  init_filter_window_1;
                     else
                         -- TODO: reset img_offset_addr counter
                         write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(new_size_squared_out));
