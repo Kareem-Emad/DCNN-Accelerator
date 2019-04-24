@@ -197,11 +197,11 @@ begin
             std_logic_vector(to_unsigned(1, n_word)),
             std_logic_vector(to_unsigned(1, n_word))
         );
-        wait for period*103;
+        wait for period*127;
         assert(window_column_in = window_data_in) report "Fetch to Window  failed!!!";
         -- wait for period;
-        wait for period*99;
-        assert(window_column_out = q_arr) report "Fetch to Window  failed!!!";
+        wait for period*247;
+        assert(window_column_out = q_arr) report "Fetch to Window  at end of row failed!!!";
         -- TO-DO: test clean_up!
     
         

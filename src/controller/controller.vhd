@@ -460,6 +460,8 @@ begin
 
 
     ---making a control reg for the sake of homogienity inside states
+    
+
     ftc_cntrl_reg_in<= 
                     edged & --15
                     second_fetch & --14
@@ -559,6 +561,16 @@ begin
     cache_data_out,cache_height_ended,cache_width_ended,ini_wind_o,ini_wind,
     finish_wind_row,finish_wind_row_o,img_base_addr,img_addr_offset)
     begin
+
+        edged <=edged_o;
+        second_fetch<=second_fetch_o;
+        -- cache_height_ended<=cache_height_ended_o;
+        -- cache_width_ended <=cache_width_ended_o ;
+        -- wind_width_ended<=wind_width_ended_o;
+        begin_ftc<=begin_ftc_o;
+        ini_wind<=ini_wind_o; 
+        finish_wind_row<=finish_wind_row_o; 
+
         case current_state is
             when got_out_of_reset =>
                 cntr1_reset <= '0';
@@ -601,7 +613,7 @@ begin
                 cache_height_count_rst <= zeros(0);
                 cache_height_count_en <= zeros(0);
                 cache_height_count_mode <= zeros(1 downto 0);
-                cache_width_count <= zeros(15 downto 0);
+                -- cache_width_count <= zeros(15 downto 0);
                 cache_width_count_rst <= zeros(0);
                 cache_width_count_en <= zeros(0);
                 cache_width_count_mode <= zeros(0);
@@ -777,14 +789,17 @@ begin
                 next_state <= init_image_cache_2;
 
             when init_image_cache_2 =>
+                max_height <= x"0005";
+                cache_height_count_mode <= "00";
+                cache_width_count_mode <= '0';
                 cache_rst <= '0';
                 ftc_cntrl_reg_rst <= '0';
                 ftc_cntrl_reg_en <= '1';
 
                 if cache_height_ended_o = '0' then 
                     if cache_width_ended_o = '0' then --add pixel to cache
-                       img_addr_en <= '1';
-                       img_addr_mode<= '0';
+                        img_addr_en <= '1';
+                        img_addr_mode<= '0';
                         mem_addr_out <= std_logic_vector(unsigned(img_base_addr) + unsigned(img_addr_offset));
                         mem_read <= '1';
                         cache_data_in <= mem_data_in;
@@ -817,7 +832,6 @@ begin
                     cache_height_count_en <= '0';
                     next_state <= postini_cache;
                     wind_width_count_rst <= '1';
-                    wind_max_width <= x"0004";
                     ini_wind <= '1';
                     edged <= '0';
                     second_fetch<='0';
@@ -825,7 +839,7 @@ begin
                 
                 end if;
             when postini_cache=> -- setting up what is needed for next states (fetch to cache, i need to dec height)
-                ftc_cntrl_reg_rst <= '1'; --for fetch to cache
+                -- ftc_cntrl_reg_rst <= '1'; --for fetch to cache
                 -- -1 height 1 to prepare for fetch to cache
                 next_state <= preini_img_window;
             
@@ -834,12 +848,13 @@ begin
                 num_channels_enable <= '0';
                 write_offset_load <= '0';
                 -- Preparing
+                -- wind_max_width <= x"0004";
                 cache_height_count_en <= '0';
                 ftc_cntrl_reg_rst <= '0'; 
                 ftc_cntrl_reg_en<='1';
-                if finish_wind_row = '1' then
+                if finish_wind_row_o = '1' then
                     next_state<= fetch_to_cache;
-                elsif ini_wind='1' then
+                elsif ini_wind_o     ='1' then
                     next_state <= init_image_window;
                     wind_width_count_rst<='1';
                 else
@@ -848,11 +863,13 @@ begin
                 end if;
                 
             when init_image_window =>
-                 img_addr_en <= '0';
-                wind_max_width <= x"0004";
+                ftc_cntrl_reg_en<='1';
+                img_addr_en <= '0';
+                
                 wind_rst<='0';                
                 cache_height_count_en <= '0';
                 if wind_width_ended_o = '0' then  --If window_col_count != 5
+                wind_max_width <= x"0004";
                     wind_col_in<= cache_data_out;
                     wind_en <= '1';
 
@@ -934,6 +951,10 @@ begin
                     else
                         cache_height_count_en<='0'; 
                     end if;
+
+                    next_state<=write_to_memory_1;
+                    second_fetch<='0';
+                     
                 else
                     ini_wind<='0';
                     cache_height_count_en<='0'; 
@@ -949,6 +970,18 @@ begin
                     end if;
                         
                     cache_width_count_mode<='0'; -- +1
+
+                    if  filter_tbt='1' and second_fetch_o='0' then-- and (cache_width_ended_o='0' or (cache_width_ended_o='1' and cache_width(0)='1')) then --even with so i can fetch again
+                         next_state<=fetch_to_cache;
+                         second_fetch<='1';
+                   elsif finish_wind_row_o='1' then    
+                        next_state<= fetch_to_cache;
+                        second_fetch<='0';
+                    else
+                        next_state<=fetch_to_image_window;
+                        second_fetch<='0';
+                    end if;
+
                 end if;
     
                    --Deciding if i'm about to load 0's into cache
@@ -978,19 +1011,19 @@ begin
                     
                 end if;
                 --decide next state
-                if  filter_tbt='1' and second_fetch_o='0' and ini_wind='0' then-- and (cache_width_ended_o='0' or (cache_width_ended_o='1' and cache_width(0)='1')) then --even with so i can fetch again
-                    next_state<=fetch_to_cache;
-                    second_fetch<='1';
-                elsif finish_wind_row='1' then    
-                    next_state<= fetch_to_cache;
-                    second_fetch<='0';
-                elsif ini_wind='1' then
-                    next_state<=write_to_memory_1;
-                    second_fetch<='0';
-                else 
-                    next_state<=fetch_to_image_window;
-                    second_fetch<='0';
-                end if;
+                -- if  filter_tbt='1' and second_fetch_o='0' and ini_wind='0' then-- and (cache_width_ended_o='0' or (cache_width_ended_o='1' and cache_width(0)='1')) then --even with so i can fetch again
+                --     next_state<=fetch_to_cache;
+                --     second_fetch<='1';
+                -- elsif finish_wind_row_o='1' then    
+                --     next_state<= fetch_to_cache;
+                --     second_fetch<='0';
+                -- elsif ini_wind='1' then
+                --     next_state<=write_to_memory_1;
+                --     second_fetch<='0';
+                -- else 
+                --     next_state<=fetch_to_image_window;
+                --     second_fetch<='0';
+                -- end if;
                 --prepae for fetch to iimg_wind
             when fetch_to_image_window => --assuming col counter is at 4 (first window already initialized)
             --cache in sel is window_col_counter.
@@ -1003,7 +1036,7 @@ begin
                 mem_read <='0';
                 ftc_cntrl_reg_en<='1';
                 ftc_cntrl_reg_rst<='0';
-    
+                wind_max_width<=cache_width_1; 
                 cache_out_sel<= wind_width_count;
                 if wind_width_ended_o='1' and filter_tbt='1'  then
                     wind_en<='1';
@@ -1052,7 +1085,8 @@ begin
                 mem_addr_out <= std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
                 mem_write <= '1';
                 write_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) + 1);write_offset_load <= '1';
-                next_state<=preini_img_window;
+                next_state<=write_to_memory_2;
+                -- next_state <= preini_img_window;
             when write_to_memory_2 =>
                 mem_data_out <= comp_unit_data2_in;
                 mem_addr_out <= std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
@@ -1063,13 +1097,13 @@ begin
                 mem_write <= '0';
                 write_offset_load <= '0';
                 if not(write_offset_data_out = new_size_squared_out) then -- channel unfinished
-                    next_state <= clean_up; -- should be initialize window
+                    next_state <= preini_img_window; -- should be initialize window
                 else
                     write_offset_load <= '1';
                     write_offset_data_in <= (others => '0'); -- write_offset = 0
                     if num_channels_max_reached = '0' then -- new channel
                         num_channels_enable <= '1'; -- decrement the channel
-                        next_state <= preini_img_window;
+                        next_state <=  init_filter_window_1;
                     else
                         -- TODO: reset img_offset_addr counter
                         write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(new_size_squared_out));
