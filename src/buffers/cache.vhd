@@ -34,7 +34,6 @@ architecture Dataflow of Cache is
     type array2d is array (0 to num_queues-1) of wordarr_t(0 to cap-1);
     signal que_out : array2d;
     signal sel_que : std_logic_vector(num_queues-1 downto 0);
-    signal temp: std_logic_vector(sel-1 downto 0);
    
     begin
         in_decoder : entity dcnn.Decoder

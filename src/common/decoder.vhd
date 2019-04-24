@@ -5,8 +5,9 @@ library dcnn;
 
 entity Decoder is
     generic ( 
-        Nsel : natural;
-        Nout : natural );
+        Nsel : natural := 5;
+        Nout : natural := 28
+        );
     port (
         enable : in std_logic;
         A : in std_logic_vector(Nsel-1 downto 0);

@@ -17,7 +17,7 @@ end Reg;
 architecture Behavioral of Reg is
 
 begin
-    process(clk, reset)
+    process(clk, reset, rst_data)
     begin
         if reset = '1' then
             q <= rst_data;
