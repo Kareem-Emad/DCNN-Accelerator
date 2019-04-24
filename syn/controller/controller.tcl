@@ -8,6 +8,7 @@ read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/decoder.
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/buffers/cache.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/counter.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/advancedCounter.vhd }
+read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/buffers/image_window.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/controller/controller.vhd }
 # pre_optimize -common_logic -unused_logic -boundary -xor_comparator_optimize 
 pre_optimize -common_logic -boundary -xor_comparator_optimize 

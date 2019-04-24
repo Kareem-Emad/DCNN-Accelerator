@@ -23,9 +23,9 @@ entity Controller is
         mem_read_out        :   out std_logic; -- reads from memory
         filter_data_out     :   out std_logic_vector(N-1 downto 0);
         filter_ready_out    :   out std_logic;
-        wind_en             :   out std_logic;
-        wind_rst            :   out std_logic;
-        wind_col_in         :   out wordarr_t(4 downto 0);
+        -- wind_en             :   out std_logic;
+        -- wind_rst            :   out std_logic;
+        -- wind_col_in         :   out wordarr_t(4 downto 0);
 	    comp_unit_ready     :   out std_logic;
 	    comp_unit_data1_out     :   out std_logic_vector(N-1 downto 0);
         comp_unit_data2_out     :   out std_logic_vector(N-1 downto 0);
@@ -33,7 +33,8 @@ entity Controller is
         comp_unit_data2_in      :   in std_logic_vector(N-1 downto 0);
         argmax_ready            :   out std_logic;
         argmax_data_out         :   out std_logic_vector(N-1 downto 0);
-        argmax_data_in          :   in std_logic_vector(N-1 downto 0)
+        argmax_data_in          :   in std_logic_vector(N-1 downto 0);
+        wind_out_vec            :out std_logic_vector(0 to (25*16)-1)
     );
 end Controller;
 
@@ -53,7 +54,6 @@ architecture Mixed of Controller is
         fetch_filter_bias,
         init_image_cache_1,
         init_image_cache_2,
-        postini_cache,
         preini_img_window,
         init_image_window,
         start_convolution_1,
@@ -94,8 +94,6 @@ architecture Mixed of Controller is
     signal addr1_data : std_logic_vector(M-1 downto 0);-- := (others => 'Z');
     signal write_mem_to_fltr : std_logic;
     signal mem_read, mem_write : std_logic; 
-    --TO-DO: needs a flip flop!
-    signal img_base_addr : std_logic_vector(M-1 downto 0);-- := (others => 'Z');
 
     -- Layer information signals
     signal nlayers_counter_enable : std_logic;
@@ -249,6 +247,7 @@ architecture Mixed of Controller is
     signal img_addr_mode: std_logic;
     signal img_addr_max_reached: std_logic;
     signal img_addr_offset : std_logic_vector(M-1 downto 0);
+    --TO-DO: needs a flip flop!
     signal img_base_addr:  std_logic_vector(M-1 downto 0);
     -- Signals for Argmax computation
     signal class_cntr_enable : std_logic;
@@ -257,12 +256,52 @@ architecture Mixed of Controller is
     signal class_cntr_max_reached_out : std_logic;
     signal class_cntr_counter_out : std_logic_vector(3 downto 0); 
 
-    
+    ---for testing window
+    signal wind_out: wordarr_t(0 to 24);
+    -- signal wind_out_vec: std_logic_vector(0 to (25*16)-1);
+    signal wind_en  : std_logic;
+    signal  wind_rst :   std_logic;
+    signal wind_col_in:   wordarr_t(4 downto 0);
 
 begin
+
+
+   
+    wind_out_vec<=wind_out(24)
+    &wind_out(23)
+    &wind_out(22)
+    &wind_out(21)
+    &wind_out(20)
+    &wind_out(19)
+    &wind_out(18)
+    &wind_out(17)
+    &wind_out(16)
+    &wind_out(15)
+    &wind_out(14)
+    &wind_out(13)
+    &wind_out(12)
+    &wind_out(11)
+    &wind_out(10)
+    &wind_out(9)
+    &wind_out(8)
+    &wind_out(7)
+    &wind_out(6)
+    &wind_out(5)
+    &wind_out(4)
+    &wind_out(3)
+    &wind_out(2)
+    &wind_out(1)
+    &wind_out(0);
+
+
+
+    
+   
+   
     zeros <= (others => '0');
     ones <= (others => '1');
     img_base_addr <= X"9857";
+    write_base_rst_data <= X"9B68";
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
     filter_ready_out <= '1' when write_mem_to_fltr = '1' else '0';
     IsPoolLayer <= '1' when layer_type_out = "01" else '0';
@@ -282,6 +321,16 @@ begin
     channel_zero_data_load_actual(0) <= channel_zero_data_load;
     channel_zero_out <= channel_zero_out_actual(0);
     class_cntr_max_val_in <= "1010";
+
+--FOR TESTING PURPOSES
+    image_window: entity dcnn.ImageWindow
+    port map (
+        d =>wind_col_in,
+        q =>wind_out,
+        clk =>not_clk,
+        load=> wind_en,
+        reset =>wind_rst
+    );
 
     -- Layer Information Components
     nlayers : entity dcnn.LoadedCounter
@@ -578,14 +627,18 @@ begin
     
     comp_ns : process(current_state,
     addr1_data, mem_data_in,
-    layer_type_out, IsConvLayer, write_base_data_out, IsPoolLayer,
+    layer_type_out, IsConvLayer, IsPoolLayer,
     IsFCLayer, channel_zero_out, flt_bias_out, write_offset_data_out,
     write_base_data_out, bias_offset_data_out, bias1, bias2,
     bias1_data_out, comp_unit_data1_in, new_size_squared_out,
     nlayers_max_reached, num_channels_max_reached,
     new_width_out, layer_mem_size_out, comp_unit_data2_in,
     nflt_layer_max_reached, class_cntr_max_reached_out,
-    class_cntr_counter_out,
+    class_cntr_counter_out, img_addr_offset, img_base_addr,
+    cache_height_ended_o,edged_o,cache_width_ended_o,second_fetch_o,wind_width_ended_o,
+    cache_data_out,cache_height_ended,cache_width_ended,ini_wind_o,ini_wind,
+    finish_wind_row,finish_wind_row_o, begin_ftc_o, cache_width_1,
+    cache_height_1, wind_width_count, argmax_data_in,
     cntr1_max_reached, filter_tbt, nflt_layer_temp, nflt_layer_out
     )
     begin
@@ -639,7 +692,10 @@ begin
         cache_height_count_mode <= "00";
         max_height <= X"001C"; -- Is this real?
         edged <= edged_o;
-        
+        second_fetch <= second_fetch_o;
+        begin_ftc <= begin_ftc_o;
+        ini_wind <= ini_wind_o;
+        finish_wind_row <= finish_wind_row_o;
         -- Image window
         wind_width_in <= (others => '0');
         wind_width_count_rst <= '1';
@@ -651,6 +707,8 @@ begin
         ftc_cntrl_reg_rst <= '0';
         ftc_cntrl_reg_en <= '0';
         wind_col_in <= (others => (others => '0'));
+        img_addr_en <= '0';
+        img_addr_mode<='0';
         -- Convolution data
         bias1 <= (others => '0');
         bias1_load <= '0';
@@ -857,7 +915,7 @@ begin
                 else --outer loop ended
                     cache_width_count_rst <= '1'; --resetting for next states 
                     cache_height_count_en <= '0';
-                    next_state <= postini_cache;
+                    next_state <= preini_img_window;
                     wind_width_count_rst <= '1';
                     ini_wind <= '1';
                     edged <= '0';
@@ -865,11 +923,6 @@ begin
                     img_addr_en <= '0';
                 
                 end if;
-            when postini_cache=> -- setting up what is needed for next states (fetch to cache, i need to dec height)
-                -- ftc_cntrl_reg_rst <= '1'; --for fetch to cache
-                -- -1 height 1 to prepare for fetch to cache
-                next_state <= preini_img_window;
-            
             when preini_img_window => --for the sake of reusing this state for fetch to wind
                 -- Cleaning up
                 num_channels_enable <= '0';
@@ -955,9 +1008,6 @@ begin
                 comp_unit_ready <= '1';
                 next_state <= fetch_to_cache; -- should be fetch_to_cache
             when fetch_to_cache =>  
-                -- Cleaning up
-                mem_read <= '0';
-                channel_zero <= '0';    
                 --Making sure signals are correctly set
                 ftc_cntrl_reg_en<='1';
                 ftc_cntrl_reg_rst<='0'; ----must be reset at end on ini windowwwww please.
