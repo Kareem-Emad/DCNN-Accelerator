@@ -1,7 +1,7 @@
 from enum import Enum
 import numpy as np
 
-IM_SIZE = 8
+IM_SIZE = 28
 
 
 # The memory is structured as follows:
@@ -32,7 +32,7 @@ IM_SIZE = 8
 def create_memory():
     # img = np.random.randn(IMSIZE, IMSIZE)
     # img = 9 * np.ones((IMSIZE, IMSIZE))
-    img = np.arange(IM_SIZE * IM_SIZE, 1)
+    img = np.arange(0, IM_SIZE * IM_SIZE, 1)
     nlayers = 1
     # 0 = convolution, 1 = average pooling, 2 = FC
     layer_types = np.array([0, 0, 2])
@@ -59,7 +59,7 @@ def create_memory():
                               layer_dims[i + 1] * layer_dims[i + 1] * flt_nfilters[i]])
         if layer_types[i] == 0:
             for j in range(flt_nfilters[i]):
-                bias = np.random.randint(0, 20)
+                bias = 46 # np.random.randint(0, 20)
                 mem = np.append(mem, bias)
                 for ch in range(n_in_channels):
                     # flt2d = np.reshape(np.random.randint(1, 5) * np.ones((flt_sizes[i], flt_sizes[i])), -1)
@@ -85,18 +85,18 @@ def create_memory():
 
 
 mem, outp_addr, data_addr = create_memory()
-print(mem)
+# print(mem)
 
 
 def write_memory(mem, outp_addr, data_addr, file_name):
     file = open(file_name, "w")
     file.write("// memory data file(do not edit the following line - required for mem load use)\n // instance=/ram_inst/ram\n // format=mti addressradix=d dataradix=b version=1.0 wordsperline=1\n")
     for mem_addr in range(data_addr):
-        value = str(mem[mem_addr])
+        value = np.binary_repr(int(mem[mem_addr]), 16)
         file.write("\t" + str(mem_addr) + ": " + value + "\n")
     for mem_addr in range(outp_addr, outp_addr + IM_SIZE * IM_SIZE):
-        value = str(mem[mem_addr])
+        value = np.binary_repr(int(mem[mem_addr]), 16)
         file.write("\t" + str(mem_addr) + ": " + value + "\n")
     print("Wrote out memory file to %s!" % file_name)
 
-write_memory(mem, outp_addr, data_addr, "sample.mem")
+write_memory(mem, outp_addr, data_addr, "../scripts/memory.mem")
