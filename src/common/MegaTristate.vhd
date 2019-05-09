@@ -4,16 +4,16 @@ library dcnn;
 use dcnn.config.all;
 
 --Tri-states an n bit output based on the enable signal
-entity TriState is 
+entity MegaTristate is 
 	port(
-		inp: in std_logic_vector(n_word-1 downto 0);  --Input signal
+		inp: in wordarr_t(0 to 24);  --Input signal
 		en : in std_logic := '0';                --Buffer enable
-		ot : out std_logic_vector(n_word-1 downto 0)  --Output signal
+		ot : out wordarr_t(0 to 24)  --Output signal
 	);
-end entity TriState;
+end entity MegaTristate;
 
-architecture DataFlow of TriState is
+architecture DataFlow of MegaTristate is
 begin
 	ot <= inp when en = '1'
-		else (others => 'Z');
+		else (others => (others => 'Z'));
 end architecture DataFlow;

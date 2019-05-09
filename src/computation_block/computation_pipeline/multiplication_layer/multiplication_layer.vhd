@@ -18,11 +18,11 @@ architecture Structural of MultiplicationLayer is
 begin
     multipliers_gen: for i in 0 to 24 generate
         mul_gen: entity dcnn.Multiplier
-            generic map(
-                op1_exp => image_exp,
-                op2_exp => filter_exp,
-                out_exp => image_exp
-            )
+            -- generic map(
+            --    op1_exp => image_exp,
+            --    op2_exp => filter_exp,
+            --    out_exp => image_exp
+            -- )
             port map(
                 a => img_data(i),
                 b => filter_data(i),

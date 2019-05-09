@@ -1,20 +1,21 @@
 library ieee;
+library dcnn;
 use ieee.std_logic_1164.all;
+use dcnn.config.all;
 
 --Adds 2 n bit signed operands
 entity NAdder is
-	generic(N : natural := 16); --Generic input to specifiy the Adder's size
-
 	port(
-		a   : in std_logic_vector(N-1 downto 0);   --First operand 
-		b   : in std_logic_vector(N-1 downto 0);   --Second operand
+		a   : in std_logic_vector(n_word-1 downto 0);   --First operand 
+		b   : in std_logic_vector(n_word-1 downto 0);   --Second operand
 		cin : in std_logic := '0';                 --Carry in bit (default = 0)
-		s   : out std_logic_vector(N-1 downto 0);  --Sum (a+b)
+		s   : out std_logic_vector(n_word-1 downto 0);  --Sum (a+b)
 		cout: out std_logic                        --Carry out bit
 	);
 end entity NAdder;
 
 architecture DataFlow of NAdder is
+	constant N : natural := n_word;
 	component BitAdder
 		port(
 			a   : in std_logic;             --First operand

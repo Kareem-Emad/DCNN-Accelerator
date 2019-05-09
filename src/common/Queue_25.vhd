@@ -4,35 +4,31 @@ use ieee.std_logic_1164.all;
 use dcnn.config.all;
 
 -------------------------------------------------------------------------------
--- Queue entity is an implementation of FIFO structure. Parallel output is
+-- Queue_25 entity is an implementation of FIFO structure. Parallel output is
 -- also supported.
 -------------------------------------------------------------------------------
 
-entity Queue is
-    generic(
-        cap : natural := 5 -- Queue's capacity (number of words it can store). 
-    );
+entity Queue_25 is
     port(
         -- word to be pushed
         d : in word_t := (others => '0');
         -- parallel output of the whole stored data 
-        q : out wordarr_t(0 to cap-1) := (others => (others => '0'));
+        q : out wordarr_t(0 to 25-1) := (others => (others => '0'));
         clk : in std_logic := '0';
-        -- pushes d into the queue thus evicting the word #capacity-1
+        -- pushes d into the Queue_25 thus evicting the word #25acity-1
         -- the next clock cycle we get q[0:n_word] = d
         load : in std_logic := '0';
         reset : in std_logic := '0'
     );
-end Queue;
+end Queue_25;
 
-architecture Dataflow of Queue is
+architecture Structural of Queue_25 is
 
-signal d_arr : wordarr_t(0 to cap-1);
-signal q_arr : wordarr_t(0 to cap-1);
+signal d_arr : wordarr_t(0 to 25-1);
+signal q_arr : wordarr_t(0 to 25-1);
 begin
     d_arr(0) <= d;
-    reg0: entity dcnn.Reg
-        generic map(n_word)
+    reg0: entity dcnn.Reg_16
         port map(
             d => d_arr(0),
             q => q_arr(0),
@@ -41,10 +37,9 @@ begin
             reset => reset
         );
     q(0) <= q_arr(0);
-    gen_regs: for i in 1 to cap-1 generate
+    gen_regs: for i in 1 to 25-1 generate
         d_arr(i) <= q_arr(i-1);     
-        regi: entity dcnn.Reg
-            generic map(n_word)
+        regi: entity dcnn.Reg_16
             port map(
                 d => d_arr(i),
                 q => q_arr(i),
@@ -54,4 +49,4 @@ begin
             );
         q(i) <= q_arr(i);
     end generate gen_regs;
-end Dataflow;
+end Structural;

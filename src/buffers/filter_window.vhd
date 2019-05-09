@@ -15,8 +15,7 @@ end FilterWindow;
 
 architecture Structural of FilterWindow is
 begin
-	queuei : entity dcnn.Queue
-        generic map(25)
+	queuei : entity dcnn.Queue_25
         port map(
             d => d,
             q => q,

@@ -20,7 +20,6 @@ architecture Structural of Op7Tree is
     signal a_arr : wordarr_t(0 to 2);
     signal b_arr : wordarr_t(0 to 2);
     signal s_arr : wordarr_t(0 to 2);
-    signal dummy : std_logic;
 begin
     router_gen: entity dcnn.Op7Router 
         port map(
@@ -29,10 +28,10 @@ begin
         );
     gen_loop: for i in 0 to 2 generate
         adder_gen: entity dcnn.NAdder
-            generic map(n_word)
+            -- generic map(n_word)
             port map(
                 a_arr(i), b_arr(i), '0',
-                s_arr(i), dummy
+                s_arr(i)
             );
     end generate;
 end Structural;

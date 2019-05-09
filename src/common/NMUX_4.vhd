@@ -4,19 +4,19 @@ library dcnn;
 use dcnn.config.all;
 
 --Multiplexes 2 n bit operands
-entity NMUX is
+entity NMUX_4 is
 	port(
-		in0: in std_logic_vector(n_word-1 downto 0);  --First input
-		in1: in std_logic_vector(n_word-1 downto 0);  --Second input
+		in0: in std_logic_vector(4-1 downto 0);  --First input
+		in1: in std_logic_vector(4-1 downto 0);  --Second input
 		sel: in std_logic;                       --Selector bit
 		en : in std_logic := '0';                --Enable bit
-		ot : out std_logic_vector(n_word-1 downto 0)  --Output(Chosen value)
+		ot : out std_logic_vector(4-1 downto 0)  --Output(Chosen value)
 	);
-end entity NMUX;
+end entity NMUX_4;
 
-architecture DataFlow of NMUX is
+architecture DataFlow of NMUX_4 is
 	--Signal to temporarily hold the multiplexed output
-	signal multiplexed_out: std_logic_vector(n_word-1 downto 0);
+	signal multiplexed_out: std_logic_vector(4-1 downto 0);
 
 begin
 	--Determine the value of the multiplexed output

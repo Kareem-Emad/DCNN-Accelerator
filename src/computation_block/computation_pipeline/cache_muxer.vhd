@@ -25,6 +25,20 @@ architecture Behavioral of CacheMuxer is
     signal img_data_reordered : wordarr_t(0 to 24);
     signal filter_data_reordered : wordarr_t(0 to 24);
 begin
+    
+    -- mux_tritate: entity dcnn.MegaTristate 
+    --     port map(d_arr_mux, sel_mux, d_arr);
+    -- mul_tritate: entity dcnn.MegaTristate 
+    --     port map(d_arr_mul, sel_mul, d_arr);
+    -- add_tritate: entity dcnn.MegaTristate 
+    --     port map(d_arr_add, sel_add, d_arr);
+    -- merge1_tritate: entity dcnn.MegaTristate 
+    --     port map(d_arr_merge1, sel_merge1, d_arr);
+    -- merge2_tritate: entity dcnn.MegaTristate 
+    --     port map(d_arr_merge2, sel_merge2, d_arr);
+    -- relu_tritate: entity dcnn.MegaTristate 
+    --     port map(d_arr_relu, sel_relu, d_arr);
+    
     d_arr <= d_arr_mux when sel_mux = '1' else 
             d_arr_mul when sel_mul = '1' else
             d_arr_add when sel_add = '1' else
