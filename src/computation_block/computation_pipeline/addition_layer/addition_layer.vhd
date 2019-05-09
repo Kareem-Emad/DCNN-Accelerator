@@ -23,7 +23,7 @@ begin
             d_arr(9 to 17),
             q_arr(9 to 17)
         );
-    op7tree: entity dcnn.Op7Tree
+    op7tree1: entity dcnn.Op7Tree
         port map(
             d_arr(18 to 24),
             q_arr(18 to 24)

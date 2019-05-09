@@ -35,13 +35,13 @@ begin
     q7 <= q_arr(18);
 
     adder1_gen: entity dcnn.NAdder
-        generic map(n_word)
+        -- generic map(n_word)
         port map(
             q9_2, q7, '0', s1, dummy1
         );
     
     adder2_gen: entity dcnn.NAdder
-        generic map(n_word)
+        -- generic map(n_word)
         port map(
             q9_1, s1, '0', s2, dummy2
         );

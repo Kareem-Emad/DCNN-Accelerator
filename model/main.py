@@ -338,4 +338,3 @@ dcnn_sim(mem, outp_addr)
 #             -- (write_addr_offset=0, rowCounter=5, colCounter=0, imgWindowCol=5)
 #             -- clean_up_2
 #             -- (img_offset_addr=0, write_addr_base += NewSizeSquared, new layer prep)
-

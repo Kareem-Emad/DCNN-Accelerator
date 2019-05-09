@@ -25,8 +25,7 @@ end ImageWindow;
 architecture Structural of ImageWindow is
 begin
 	gen_queues: for i in 0 to 4 generate
-		queuei : entity dcnn.Queue
-			generic map(5)
+		queuei : entity dcnn.Queue_5
 			port map(
 				d => d(i),
 				q => q(5*i to 5*(i + 1)-1),

@@ -20,7 +20,8 @@ entity ComputationPipeline is
         en : in std_logic := '0';
         reset : in std_logic := '0';
         buffer_ready : out std_logic := '0';
-        ready : out std_logic
+        semi_ready : out std_logic := '0';
+        ready : out std_logic := '0'
     );
 end ComputationPipeline;
 
@@ -33,7 +34,8 @@ architecture Behavioral of ComputationPipeline is
     constant state_merge1 : natural := 13;
     constant state_merge2 : natural := 14;
     constant state_relu : natural := 15;
-    constant n_states : natural := 16;
+    constant state_commit : natural := 16;
+    constant n_states : natural := 17;
 
     signal counter : unsigned(n_states-1 downto 0);
     signal ordered_filter_data : wordarr_t(0 to 24);
@@ -61,7 +63,7 @@ begin
                     if counter(state_mux) = '1' and operation = pooling then
                         counter <= (state_add_l => '1', others => '0');
                     elsif counter(state_merge2) = '1' and compute_relu = '0' then
-                        counter <= to_unsigned(0, n_states);
+                        counter <= (state_commit => '1', others => '0');
                     else
                         counter <= shift_left(counter, 1);
                     end if;
@@ -79,8 +81,9 @@ begin
     sel_merge1 <= counter(13);
     sel_merge2 <= counter(14);
     sel_relu <= counter(15);
-    buffer_ready <= not(sel_mux) and not(sel_mul);
-    ready <= '1' when counter = to_unsigned(0, n_states) else '0';
+    buffer_ready <= (not(sel_mux) and not(sel_mul)) or not(en);
+    semi_ready <= counter(state_commit);
+    ready <= '1' when counter = to_unsigned(0, n_states) or en = '0' else '0';
     
     cache_muxer_gen : entity dcnn.CacheMuxer 
         port map(
