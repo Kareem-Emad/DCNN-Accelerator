@@ -13,28 +13,48 @@ entity Controller is
         );
     port (
         clk                 :   in  std_logic;
-        reset               :   in  std_logic; -- to-do: OR all other resets with this.
+        reset               :   in  std_logic; -- TODO: OR all other resets with this.
+
+        -- IO signals
         io_ready_in         :   in  std_logic;
         io_done_out         :   out std_logic;
+        
+        -- Memory signals
         mem_data_in         :   in  std_logic_vector(N - 1 downto 0);
         mem_data_out        :   out std_logic_vector(N - 1 downto 0);
         mem_addr_out        :   out std_logic_vector(M - 1 downto 0);
         mem_write_out       :   out std_logic; -- writes into memory
         mem_read_out        :   out std_logic; -- reads from memory
+        
+        -- To Computation Block
+        -- To Image Window
+        wind_en             :   out std_logic;
+        wind_rst            :   out std_logic;
+        wind_col_in         :   out wordarr_t(0 to 4);
+        -- wind_out_vec            :out std_logic_vector(0 to (25*16)-1)
+
+        -- Filter Window input
         filter_data_out     :   out std_logic_vector(N-1 downto 0);
         filter_ready_out    :   out std_logic;
-        -- wind_en             :   out std_logic;
-        -- wind_rst            :   out std_logic;
-        -- wind_col_in         :   out wordarr_t(4 downto 0);
-	    comp_unit_ready     :   out std_logic;
+        filter_reset        :   out std_logic;
+        
+        -- Programming & Bias data
+	    comp_unit_ready         :   out std_logic;
+        comp_unit_operation     :   out operation_t;
+        comp_unit_flt_size      :   out filtersize_t;
+        comp_unit_relu          :   out std_logic;
 	    comp_unit_data1_out     :   out std_logic_vector(N-1 downto 0);
         comp_unit_data2_out     :   out std_logic_vector(N-1 downto 0);
+
+        -- Inputs from Computation Block
+        comp_unit_finished      :   in std_logic;
         comp_unit_data1_in      :   in std_logic_vector(N-1 downto 0);
         comp_unit_data2_in      :   in std_logic_vector(N-1 downto 0);
+
+        -- Argmax Unit
         argmax_ready            :   out std_logic;
         argmax_data_out         :   out std_logic_vector(N-1 downto 0);
-        argmax_data_in          :   in std_logic_vector(N-1 downto 0);
-        wind_out_vec            :out std_logic_vector(0 to (25*16)-1)
+        argmax_data_in          :   in std_logic_vector(N-1 downto 0)
     );
 end Controller;
 
@@ -58,6 +78,7 @@ architecture Mixed of Controller is
         init_image_window,
         start_convolution_1,
         start_convolution_2,
+        waiting_on_computation,
         fetch_to_cache,
         fetch_to_image_window,
         write_to_memory_1,
@@ -257,41 +278,42 @@ architecture Mixed of Controller is
     signal class_cntr_counter_out : std_logic_vector(3 downto 0); 
 
     ---for testing window
-    signal wind_out: wordarr_t(0 to 24);
+    -- signal wind_out: wordarr_t(0 to 24);
     -- signal wind_out_vec: std_logic_vector(0 to (25*16)-1);
-    signal wind_en  : std_logic;
-    signal  wind_rst :   std_logic;
-    signal wind_col_in:   wordarr_t(4 downto 0);
+    -- signal wind_en  : std_logic;
+    -- signal  wind_rst :   std_logic;
+    -- signal wind_col_in:   wordarr_t(4 downto 0);
 
 begin
-
-
-   
-    wind_out_vec<=wind_out(24)
-    &wind_out(23)
-    &wind_out(22)
-    &wind_out(21)
-    &wind_out(20)
-    &wind_out(19)
-    &wind_out(18)
-    &wind_out(17)
-    &wind_out(16)
-    &wind_out(15)
-    &wind_out(14)
-    &wind_out(13)
-    &wind_out(12)
-    &wind_out(11)
-    &wind_out(10)
-    &wind_out(9)
-    &wind_out(8)
-    &wind_out(7)
-    &wind_out(6)
-    &wind_out(5)
-    &wind_out(4)
-    &wind_out(3)
-    &wind_out(2)
-    &wind_out(1)
-    &wind_out(0);
+    -- Outputs to ComputationBlock
+    filter_reset <= reset;
+    comp_unit_operation <= convolution when IsConvLayer = '1' or IsFCLayer = '1' else pooling;
+    comp_unit_flt_size <= filter3x3 when filter_tbt = '1' else filter5x5;
+    -- wind_out_vec<=wind_out(24)
+    --                 &wind_out(23)
+    --                 &wind_out(22)
+    --                 &wind_out(21)
+    --                 &wind_out(20)
+    --                 &wind_out(19)
+    --                 &wind_out(18)
+    --                 &wind_out(17)
+    --                 &wind_out(16)
+    --                 &wind_out(15)
+    --                 &wind_out(14)
+    --                 &wind_out(13)
+    --                 &wind_out(12)
+    --                 &wind_out(11)
+    --                 &wind_out(10)
+    --                 &wind_out(9)
+    --                 &wind_out(8)
+    --                 &wind_out(7)
+    --                 &wind_out(6)
+    --                 &wind_out(5)
+    --                 &wind_out(4)
+    --                 &wind_out(3)
+    --                 &wind_out(2)
+    --                 &wind_out(1)
+    --                 &wind_out(0);
 
 
 
@@ -323,14 +345,14 @@ begin
     class_cntr_max_val_in <= "1010";
 
 --FOR TESTING PURPOSES
-    image_window: entity dcnn.ImageWindow
-    port map (
-        d =>wind_col_in,
-        q =>wind_out,
-        clk =>not_clk,
-        load=> wind_en,
-        reset =>wind_rst
-    );
+    -- image_window: entity dcnn.ImageWindow
+    -- port map (
+    --     d =>wind_col_in,
+    --     q =>wind_out,
+    --     clk =>not_clk,
+    --     load=> wind_en,
+    --     reset =>wind_rst
+    -- );
 
     -- Layer Information Components
     nlayers : entity dcnn.LoadedCounter
@@ -731,6 +753,7 @@ begin
         channel_zero_load <= '0';
         channel_zero_data_load <= '0';
         -- Outputs
+        comp_unit_relu <= '0';
         comp_unit_data1_out <= (others => '0');
         comp_unit_data2_out <= (others => '0');
         write_mem_to_fltr <= '0';
@@ -829,7 +852,9 @@ begin
                 if IsPoolLayer = '1' then
                     next_state <= init_image_cache_1;
                 else
+                    mem_addr_out <= addr1_data;
                     mem_read <= '1';
+                    addr1_enable <= '1';
                     write_mem_to_fltr <= '1';
                     cntr1_reset <= '1';
                     next_state <= init_filter_window_2;
@@ -840,7 +865,7 @@ begin
                 if filter_tbt = '1' then
                     cntr1_max_val <= "001000"; -- (9 - 1)
                 else
-                    cntr1_max_val <= "100100"; -- (25 - 1)
+                    cntr1_max_val <= "011000"; -- (25 - 1)
                 end if;
                 addr1_enable <= '1';
                 mem_addr_out <= addr1_data;
@@ -849,6 +874,8 @@ begin
                 if cntr1_max_reached = '0' then
                     next_state <= init_filter_window_2;
                 else
+                    mem_read <= '0';                
+                    write_mem_to_fltr <= '0';
                     next_state <= init_image_cache_1; -- should be init_image_cache
                 end if;
             when init_image_cache_1 =>
@@ -977,7 +1004,7 @@ begin
                 elsif IsFCLayer = '1' then -- FC
                     bias1 <= (others =>'0');
                 elsif channel_zero_out = '1' then
-                    bias1 <= flt_bias_out;
+                        bias1 <= flt_bias_out;
                 else
                     mem_addr_out <= std_logic_vector(unsigned(write_offset_data_out) + unsigned(write_base_data_out));
                     mem_read <= '1';
@@ -986,11 +1013,12 @@ begin
                     bias_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) +1);
                 end if;
                 comp_unit_data1_out <= bias1;
+                comp_unit_relu <= num_channels_max_reached;
                 if filter_tbt = '1' then
                     next_state <= start_convolution_2;
                 else
                     comp_unit_ready <= '1';
-                    next_state <= fetch_to_cache;
+                    next_state <= waiting_on_computation;
                 end if;
                 bias1_load <= '1';
                 bias1_data_in <= bias1;
@@ -1006,7 +1034,14 @@ begin
                 end if;
                 comp_unit_data2_out <= bias2;
                 comp_unit_ready <= '1';
-                next_state <= fetch_to_cache; -- should be fetch_to_cache
+                comp_unit_relu <= num_channels_max_reached;
+                next_state <= waiting_on_computation;
+            when waiting_on_computation =>
+                if comp_unit_finished = '1' then
+                    next_state <= fetch_to_cache;
+                else
+                    next_state <= waiting_on_computation;
+                end if;
             when fetch_to_cache =>  
                 --Making sure signals are correctly set
                 ftc_cntrl_reg_en<='1';

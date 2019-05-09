@@ -40,7 +40,7 @@ architecture TB of ControllerTB is
     signal flt_bias_out : std_logic_vector(15 downto 0);
     signal window_enable : std_logic := '0';
     signal window_rst : std_logic := '0';
-    signal window_data_in : wordarr_t(4 downto 0) := (others => (others => '0'));
+    signal window_data_in : wordarr_t(0 to 4) := (others => (others => '0'));
     signal d_arr : wordarr_t(4 downto 0) := (others => (others => '0'));
     signal wind_data : wordarr_t(0 to 4) ;
     signal q_arr : wordarr_t(0 to 24);
@@ -104,28 +104,29 @@ begin
             mem_write_out => write_mem,
             filter_data_out => filter_data,
             filter_ready_out => filter_ready,
-            -- wind_en => window_enable,
-            -- wind_rst => window_rst,
-            -- wind_col_in => window_data_in,
-            wind_out_vec   => wind_out,
+            wind_en => window_enable,
+            wind_rst => window_rst,
+            wind_col_in => window_data_in,
+            -- wind_out_vec   => wind_out,
             comp_unit_ready => comp_unit_ready,
             comp_unit_data1_out => comp_unit_data1_out,
             comp_unit_data2_out => comp_unit_data2_out,
             comp_unit_data1_in => comp_unit_data1_in,
             comp_unit_data2_in => comp_unit_data2_in,
+            comp_unit_finished => '1',
             argmax_ready => argmax_ready,
             argmax_data_out => argmax_data_out,
             argmax_data_in => argmax_data_in
         );
 
-    -- image_window: entity dcnn.ImageWindow
-    --     port map (
-    --         d =>window_data_in,
-    --         q =>q_arr,
-    --         clk =>not_clk,
-    --         load=> window_enable,
-    --         reset =>window_rst
-    --     );
+    image_window: entity dcnn.ImageWindow
+        port map (
+            d =>window_data_in,
+            q =>q_arr,
+            clk =>not_clk,
+            load=> window_enable,
+            reset =>window_rst
+        );
 -- 2: Initialize memory values (maybe in the simulator?)
 -- 3: Test the initialization of the filter window.
 

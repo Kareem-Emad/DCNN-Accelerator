@@ -7,27 +7,32 @@ use dcnn.config.all;
 
 entity ComputationBlock is
     port(
+        -- Image Window inputs
         img_data_col_0 : in word_t;
         img_data_col_1 : in word_t;
         img_data_col_2 : in word_t;
         img_data_col_3 : in word_t;
         img_data_col_4 : in word_t;
-        
         img_load : in std_logic := '0';
         img_reset : in std_logic := '0';
+
+        -- Filter Window input
         filter_data_word : in word_t := (others => '0');  
         filter_load : in std_logic := '0';
         filter_reset : in std_logic := '0';
-        output1_init : in word_t := (others => '0');
-        output2_init : in word_t := (others => '0');
-        filter_size : in filtersize_t := filter5x5;
+
+        -- Computation Operation Signals
+        start : in std_logic := '0';
         operation : in operation_t := convolution;
         compute_relu : in std_logic := '1';
-        start : in std_logic := '0';
+        filter_size : in filtersize_t := filter5x5;
+        output1_init : in word_t := (others => '0');
+        output2_init : in word_t := (others => '0');
+        output1 : out word_t := (others => '0');
+        output2 : out word_t := (others => '0');        
         buffer_ready : out std_logic := '0';
         ready : out std_logic := '0';
-        output1 : out word_t := (others => '0');
-        output2 : out word_t := (others => '0');
+
         clk : in std_logic := '0';
         en : in std_logic := '0';
         reset : in std_logic := '0'
