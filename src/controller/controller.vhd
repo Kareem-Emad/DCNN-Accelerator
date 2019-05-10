@@ -277,6 +277,8 @@ architecture Mixed of Controller is
     signal class_cntr_max_reached_out : std_logic;
     signal class_cntr_counter_out : std_logic_vector(3 downto 0); 
 
+    signal random_indicator : std_logic;
+
     ---for testing window
     -- signal wind_out: wordarr_t(0 to 24);
     -- signal wind_out_vec: std_logic_vector(0 to (25*16)-1);
@@ -652,7 +654,7 @@ begin
     layer_type_out, IsConvLayer, IsPoolLayer,
     IsFCLayer, channel_zero_out, flt_bias_out, write_offset_data_out,
     write_base_data_out, bias_offset_data_out, bias1, bias2,
-    bias1_data_out, comp_unit_data1_in, new_size_squared_out,
+    bias1_data_out, comp_unit_data1_in, comp_unit_data2_in, comp_unit_finished, new_size_squared_out,
     nlayers_max_reached, num_channels_max_reached,
     new_width_out, layer_mem_size_out, comp_unit_data2_in,
     nflt_layer_max_reached, class_cntr_max_reached_out,
@@ -766,6 +768,7 @@ begin
         comp_unit_ready <= '0';
         argmax_ready <= '0';
         argmax_data_out <= (others => '0');
+        random_indicator <= '0';
         next_state <= current_state;
         case current_state is
             when got_out_of_reset =>
@@ -1188,7 +1191,7 @@ begin
                     second_fetch<='0';  
                 end if; 
             when write_to_memory_1 =>
-                wind_en <= '1';
+                -- wind_en <= '1';
                 mem_data_out <= comp_unit_data1_in;
                 mem_addr_out <= std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
                 mem_write <= '1';
@@ -1200,6 +1203,7 @@ begin
                     next_state <= clean_up;
                 end if;
             when write_to_memory_2 =>
+                -- wind_en <= '0';
                 mem_data_out <= comp_unit_data2_in;
                 mem_addr_out <= std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
                 mem_write <= '1';
@@ -1207,6 +1211,7 @@ begin
                 write_offset_load <= '1';
                 next_state <= clean_up;
             when clean_up =>
+                -- wind_en <= '0';
                 if not(write_offset_data_out = new_size_squared_out) then -- channel unfinished
                     next_state <= preini_img_window; -- should be initialize window
                 else

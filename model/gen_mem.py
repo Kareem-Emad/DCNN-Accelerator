@@ -59,13 +59,17 @@ def create_memory():
                               layer_dims[i + 1] * layer_dims[i + 1] * flt_nfilters[i]])
         if layer_types[i] == 0:
             for j in range(flt_nfilters[i]):
-                bias = 46 # np.random.randint(0, 20)
+                bias = 46  # np.random.randint(0, 20)
                 mem = np.append(mem, bias)
                 for ch in range(n_in_channels):
                     # flt2d = np.reshape(np.random.randint(1, 5) * np.ones((flt_sizes[i], flt_sizes[i])), -1)
                     flt2d = np.arange(flt_sizes[i] * flt_sizes[i]) * 2
+                    flt2d = np.flip(np.reshape(flt2d, (flt_sizes[i], flt_sizes[i])), axis=0)
+                    flt1d = np.reshape(flt2d, -1)
+                    print(flt2d)
                     # flt2d = np.random.randint(0, 20, size=flt_sizes[i] * flt_sizes[i])
-                    mem = np.append(mem, flt2d)
+                    mem = np.append(mem, flt1d)
+
         elif layer_types[i] == 2:
             prev_size = int(layer_dims[i])
             num_elem = int(prev_size / 5) * 5
@@ -81,6 +85,11 @@ def create_memory():
     mem = np.append(mem, np.zeros(65536 - mem.size))
     outp_addr = 39000
     mem[outp_addr:outp_addr + img.size] = img.flatten().copy()
+    img = np.reshape(img, (IM_SIZE, IM_SIZE))
+    for i in range(IM_SIZE):
+        for j in range(IM_SIZE):
+            print(img[i][j], end="\t")
+        print("\n")
     return mem, outp_addr, data_addr
 
 
@@ -100,3 +109,4 @@ def write_memory(mem, outp_addr, data_addr, file_name):
     print("Wrote out memory file to %s!" % file_name)
 
 write_memory(mem, outp_addr, data_addr, "../scripts/memory.mem")
+# def test_out_conv(mem):
