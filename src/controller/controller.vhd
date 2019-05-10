@@ -639,7 +639,7 @@ begin
         N => 4
     ) 
     port map(
-        clk => clk,
+        clk => not_clk,
         reset => gen_reset,
         mode_in => class_cntr_mode_in,
         enable => class_cntr_enable,

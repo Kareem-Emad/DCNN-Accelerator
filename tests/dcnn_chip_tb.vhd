@@ -13,7 +13,7 @@ architecture TB of DCNNChipTB is
     signal address : std_logic_vector(15 downto 0) := (others => 'Z');
     signal data_into_mem, data_outof_mem : std_logic_vector(15 downto 0) := (others => 'Z');
     signal io_done_out : std_logic;
-    constant period : time := 20 ns;
+    constant period : time := 1 ns;
 
 begin
     ram_inst : entity dcnn.Ram
@@ -47,7 +47,7 @@ begin
         reset <= '0';
         wait for period;
 
-        wait for 5000 * period;
+        wait for 50000 * period;
     end process;
 
     process is

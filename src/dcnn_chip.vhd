@@ -48,21 +48,19 @@ architecture Structural of DCNNChip is
     -- Argmax Programming
     signal argmax_ready : std_logic;
     signal argmax_data_outof_controller : std_logic_vector(N-1 downto 0);
+    signal argmax_data_out : std_logic_vector(3 downto 0);
     signal argmax_data_into_controller : std_logic_vector(N-1 downto 0);
 
 
 begin
+    argmax_data_into_controller <= (15 downto 4 => '0') & argmax_data_out;
+
     flip_image_wind : process(image_wind_col)
     begin
         for i in 0 to 4 loop
             image_wind_col_flipped(i) <= image_wind_col(i);
         end loop;
     end process;
-    -- ram_inst : entity dcnn.Ram
-    --     port map (
-    --         clk => clk,
-    --         read_in => read_mem,
-        -- )
     
     controller_inst : entity dcnn.Controller
         port map (
@@ -93,6 +91,7 @@ begin
             comp_unit_data1_out => comp_unit_bias1,
             comp_unit_data2_out => comp_unit_bias2,
 
+            comp_unit_buffer_finished => comp_unit_buffer_finished,
             comp_unit_finished => comp_unit_finished,
             comp_unit_data1_in => comp_unit_result1,
             comp_unit_data2_in => comp_unit_result2,
@@ -131,4 +130,14 @@ begin
             en => '1',
             reset => reset
         );
+    
+    argmax_inst : entity dcnn.ArgMax
+            port map (
+                inp => argmax_data_outof_controller,
+                en => argmax_ready,
+                clk => clk,
+                rst => reset,
+                ans => argmax_data_out
+            );
+    
 end Structural;
