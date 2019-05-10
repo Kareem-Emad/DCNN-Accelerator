@@ -29,11 +29,12 @@ for i in range(x):
             s+='0'
         else:
             s+='1'
-# print(s)
+            
+print(s)
 # print(len(s)) # (28*28)=784
 # m=max(max(len(i) for i in re.findall(r'1+', s)),max(len(i) for i in re.findall(r'0+', s)))
 # bits =int(np.ceil(np.log2(m)))
-bits=5
+bits=7
 print(bits)
 compressed =""
 now=s[0] 
@@ -47,6 +48,7 @@ for i in range (1,len(s)):
         count+=1
 compressed+=now+Encode(bits,count)
 # print(compressed)
-# print(len(compressed))
+print(len(compressed))
 with open ("compimg.txt",'w') as f:
     f.write(compressed)
+print(28*28*8)
