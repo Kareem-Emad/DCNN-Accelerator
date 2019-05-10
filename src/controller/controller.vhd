@@ -78,7 +78,7 @@ architecture Mixed of Controller is
         init_image_window,
         start_convolution_1,
         start_convolution_2,
-        waiting_on_computation,
+        -- waiting_on_computation,
         fetch_to_cache,
         fetch_to_image_window,
         write_to_memory_1,
@@ -720,15 +720,16 @@ begin
         finish_wind_row <= finish_wind_row_o;
         -- Image window
         wind_width_in <= (others => '0');
-        wind_width_count_rst <= '1';
+        wind_width_count_rst <= '0';
         wind_width_count_en <= '0';
         wind_width_count_mode <= '0';
-        wind_max_width <= X"0005"; -- Is this real too?
+        -- wind_max_width <= X"0005"; -- Is this real too?
+        wind_max_width<=cache_width_1; 
         wind_en <= '0';
         wind_rst <= '0';
         ftc_cntrl_reg_rst <= '0';
         ftc_cntrl_reg_en <= '0';
-        wind_col_in <= (others => (others => '0'));
+        wind_col_in <= cache_data_out; --(others => (others => '0'));
         img_addr_en <= '0';
         img_addr_mode<='0';
         -- Convolution data
@@ -976,7 +977,7 @@ begin
                 wind_rst<='0';                
                 cache_height_count_en <= '0';
                 if wind_width_ended_o = '0' then  --If window_col_count != 5
-                wind_max_width <= x"0004";
+                    wind_max_width <= x"0004";
                     wind_col_in<= cache_data_out;
                     wind_en <= '1';
 
@@ -991,6 +992,7 @@ begin
                     wind_width_count_mode<='0';
                     next_state <= current_state;
                 else
+                    wind_width_count_rst <= '0';
                     wind_width_count_en <= '0';
                     wind_en <= '0';
                     next_state <= start_convolution_1;   
@@ -1018,10 +1020,11 @@ begin
                     next_state <= start_convolution_2;
                 else
                     comp_unit_ready <= '1';
-                    next_state <= waiting_on_computation;
+                    next_state <= fetch_to_cache; --waiting_on_computation;
                 end if;
                 bias1_load <= '1';
                 bias1_data_in <= bias1;
+                wind_width_count_rst <= '0';
             when start_convolution_2 =>
                 comp_unit_data1_out <= bias1_data_out;
                 bias2 <= (others =>'0');
@@ -1035,13 +1038,14 @@ begin
                 comp_unit_data2_out <= bias2;
                 comp_unit_ready <= '1';
                 comp_unit_relu <= num_channels_max_reached;
-                next_state <= waiting_on_computation;
-            when waiting_on_computation =>
-                if comp_unit_finished = '1' then
-                    next_state <= fetch_to_cache;
-                else
-                    next_state <= waiting_on_computation;
-                end if;
+                next_state <= fetch_to_cache; --waiting_on_computation;
+            -- when waiting_on_computation =>
+            --     if comp_unit_finished = '1' then
+            --         next_state <= fetch_to_cache;
+            --     else
+            --         next_state <= waiting_on_computation;
+            --     end if;
+                wind_width_count_rst <= '0';
             when fetch_to_cache =>  
                 --Making sure signals are correctly set
                 ftc_cntrl_reg_en<='1';
@@ -1151,7 +1155,7 @@ begin
                 mem_read <='0';
                 ftc_cntrl_reg_en<='1';
                 ftc_cntrl_reg_rst<='0';
-                wind_max_width<=cache_width_1; 
+                -- wind_max_width<=cache_width_1; 
                 cache_out_sel<= wind_width_count;
                 if wind_width_ended_o='1' and filter_tbt='1'  then
                     wind_en<='1';
@@ -1184,6 +1188,7 @@ begin
                     second_fetch<='0';  
                 end if; 
             when write_to_memory_1 =>
+                wind_en <= '1';
                 mem_data_out <= comp_unit_data1_in;
                 mem_addr_out <= std_logic_vector(unsigned(write_base_data_out) + unsigned(write_offset_data_out));
                 mem_write <= '1';
