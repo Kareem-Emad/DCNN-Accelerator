@@ -1,7 +1,9 @@
 from enum import Enum
 import numpy as np
+from scipy import signal
 
 IM_SIZE = 28
+EXPONENT = 6
 
 
 # The memory is structured as follows:
@@ -33,6 +35,7 @@ def create_memory():
     # img = np.random.randn(IMSIZE, IMSIZE)
     # img = 9 * np.ones((IMSIZE, IMSIZE))
     img = np.arange(0, IM_SIZE * IM_SIZE, 1)
+    img2d = np.reshape(img, (IM_SIZE, IM_SIZE))
     nlayers = 1
     # 0 = convolution, 1 = average pooling, 2 = FC
     layer_types = np.array([0, 0, 2])
@@ -66,10 +69,11 @@ def create_memory():
                     flt2d = np.arange(flt_sizes[i] * flt_sizes[i]) * 2
                     flt2d = np.flip(np.reshape(flt2d, (flt_sizes[i], flt_sizes[i])), axis=0)
                     flt1d = np.reshape(flt2d, -1)
+                    conv_outp = (signal.convolve(img2d, np.flip(flt2d, axis=1), mode='valid') + bias) / (2**EXPONENT)
+                    print(conv_outp)
                     print(flt2d)
                     # flt2d = np.random.randint(0, 20, size=flt_sizes[i] * flt_sizes[i])
                     mem = np.append(mem, flt1d)
-
         elif layer_types[i] == 2:
             prev_size = int(layer_dims[i])
             num_elem = int(prev_size / 5) * 5
@@ -86,10 +90,10 @@ def create_memory():
     outp_addr = 39000
     mem[outp_addr:outp_addr + img.size] = img.flatten().copy()
     img = np.reshape(img, (IM_SIZE, IM_SIZE))
-    for i in range(IM_SIZE):
-        for j in range(IM_SIZE):
-            print(img[i][j], end="\t")
-        print("\n")
+    # for i in range(IM_SIZE):
+    #     for j in range(IM_SIZE):
+    #         print(img[i][j], end="\t")
+    #     print("\n")
     return mem, outp_addr, data_addr
 
 
