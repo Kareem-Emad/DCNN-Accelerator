@@ -121,8 +121,8 @@ BEGIN
 --	ELSE "10"		WHEN doneImgCntrl = '0'		--dummy condition to reserve choice
 --	ELSE "11"		WHEN doneCNNCntrl = '0';	--dummy condition to reserve choice
 
-	wordToMem <= wordImgMux	WHEN doneImgCntrl = '1'
-	ELSE wordCNNMux			WHEN doneCNNCntrl = '1'
+	wordToMem <= wordImgMux	WHEN wordImgCntrl = '1'
+	ELSE wordCNNMux			WHEN wordCNNCntrl = '1'
 	ELSE x"0000";
 
 	memWE <= writeMemCntrlMem;
