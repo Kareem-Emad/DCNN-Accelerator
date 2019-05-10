@@ -78,7 +78,7 @@ architecture Mixed of Controller is
         init_image_window,
         start_convolution_1,
         start_convolution_2,
-        -- waiting_on_computation,
+        waiting_on_computation,
         fetch_to_cache,
         fetch_to_image_window,
         write_to_memory_1,
@@ -1020,7 +1020,7 @@ begin
                     next_state <= start_convolution_2;
                 else
                     comp_unit_ready <= '1';
-                    next_state <= fetch_to_cache; --waiting_on_computation;
+                    next_state <= waiting_on_computation;
                 end if;
                 bias1_load <= '1';
                 bias1_data_in <= bias1;
@@ -1038,14 +1038,14 @@ begin
                 comp_unit_data2_out <= bias2;
                 comp_unit_ready <= '1';
                 comp_unit_relu <= num_channels_max_reached;
-                next_state <= fetch_to_cache; --waiting_on_computation;
-            -- when waiting_on_computation =>
-            --     if comp_unit_finished = '1' then
-            --         next_state <= fetch_to_cache;
-            --     else
-            --         next_state <= waiting_on_computation;
-            --     end if;
+                next_state <= waiting_on_computation;
                 wind_width_count_rst <= '0';
+            when waiting_on_computation =>
+                if comp_unit_finished = '1' then
+                    next_state <= fetch_to_cache;
+                else
+                    next_state <= waiting_on_computation;
+                end if;
             when fetch_to_cache =>  
                 --Making sure signals are correctly set
                 ftc_cntrl_reg_en<='1';
