@@ -31,6 +31,7 @@ architecture Structural of DCNNChip is
     -- Image Window Controls
     signal image_wind_en, image_wind_rst : std_logic;
     signal image_wind_col : wordarr_t(4 downto 0);
+    signal image_wind_col_flipped : wordarr_t(0 to 4);
     
     -- Filter Window controls
     signal filter_window_ready, filter_window_reset : std_logic;
@@ -51,6 +52,12 @@ architecture Structural of DCNNChip is
 
 
 begin
+    flip_image_wind : process(image_wind_col)
+    begin
+        for i in 0 to 4 loop
+            image_wind_col_flipped(i) <= image_wind_col(i);
+        end loop;
+    end process;
     -- ram_inst : entity dcnn.Ram
     --     port map (
     --         clk => clk,
@@ -97,11 +104,11 @@ begin
 
     computation_block_inst : entity dcnn.ComputationBlock
         port map (
-            img_data_col_0 => image_wind_col(0),
-            img_data_col_1 => image_wind_col(1),
-            img_data_col_2 => image_wind_col(2),
-            img_data_col_3 => image_wind_col(3),
-            img_data_col_4 => image_wind_col(4),
+            img_data_col_0 => image_wind_col_flipped(0),
+            img_data_col_1 => image_wind_col_flipped(1),
+            img_data_col_2 => image_wind_col_flipped(2),
+            img_data_col_3 => image_wind_col_flipped(3),
+            img_data_col_4 => image_wind_col_flipped(4),
             img_load => image_wind_en,
             img_reset => image_wind_rst,
 

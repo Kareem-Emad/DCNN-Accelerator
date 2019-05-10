@@ -26,7 +26,7 @@ begin
             data_out => data_outof_mem
         );
 
-    dcnn_chip_tb : entity dcnn.DCNNChip
+    dcnn_chip_inst : entity dcnn.DCNNChip
         port map (
             clk => clk,
             reset => reset,
@@ -42,7 +42,12 @@ begin
 
     process is
     begin
-        wait for 100 * period;
+        reset <= '1';
+        wait for period;
+        reset <= '0';
+        wait for period;
+
+        wait for 5000 * period;
     end process;
 
     process is

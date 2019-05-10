@@ -30,7 +30,7 @@ entity Controller is
         -- To Image Window
         wind_en             :   out std_logic;
         wind_rst            :   out std_logic;
-        wind_col_in         :   out wordarr_t(0 to 4);
+        wind_col_in         :   out wordarr_t(4 downto 0);
         -- wind_out_vec            :out std_logic_vector(0 to (25*16)-1)
 
         -- Filter Window input
