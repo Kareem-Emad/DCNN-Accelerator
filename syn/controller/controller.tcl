@@ -4,6 +4,10 @@ read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/config.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/constants.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/register.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/queue.vhd }
+read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/Reg_4.vhd }
+read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/Reg_16.vhd }
+read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/Queue_5.vhd }
+read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/Queue_25.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/decoder.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/buffers/cache.vhd }
 read -technology "tsmc035_typ"  { /mnt/hgfs/DCNN-Accelerator/src/common/counter.vhd }

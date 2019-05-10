@@ -47,6 +47,7 @@ entity Controller is
         comp_unit_data2_out     :   out std_logic_vector(N-1 downto 0);
 
         -- Inputs from Computation Block
+        comp_unit_buffer_finished : in std_logic;
         comp_unit_finished      :   in std_logic;
         comp_unit_data1_in      :   in std_logic_vector(N-1 downto 0);
         comp_unit_data2_in      :   in std_logic_vector(N-1 downto 0);
@@ -361,7 +362,7 @@ begin
     generic map (N => 3)
     port map (
         clk => clk, reset => gen_reset, enable => nlayers_counter_enable,
-        load => nlayers_load, mode_in => ones(0), max_val_in => zeros(2 downto 0),
+        load => nlayers_load, mode_in => ones(0), max_val_in => "001",
         load_data_in => nlayers_data_load, max_reached_out => nlayers_max_reached,
         counter_out => nlayers_out
     );
@@ -377,7 +378,7 @@ begin
     generic map (N => 4)
     port map (
         clk => clk, reset => gen_reset, enable => nflt_layer_enable,
-        load => nflt_layer_load, mode_in => '1', max_val_in => zeros(3 downto 0),
+        load => nflt_layer_load, mode_in => '1', max_val_in => "0001",
         load_data_in => nflt_layer_data_load, max_reached_out => nflt_layer_max_reached,
         counter_out => nflt_layer_out
     );
@@ -623,7 +624,7 @@ begin
 
     reg_write_offset : entity dcnn.Reg
     port map(
-        clk => clk,
+        clk => not_clk,
         reset => gen_reset,
         load => write_offset_load,
         d => write_offset_data_in,

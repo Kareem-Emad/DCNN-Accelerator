@@ -113,6 +113,7 @@ begin
             comp_unit_data2_out => comp_unit_data2_out,
             comp_unit_data1_in => comp_unit_data1_in,
             comp_unit_data2_in => comp_unit_data2_in,
+            comp_unit_buffer_finished => '1',
             comp_unit_finished => '1',
             argmax_ready => argmax_ready,
             argmax_data_out => argmax_data_out,
