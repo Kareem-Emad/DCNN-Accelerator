@@ -19,7 +19,7 @@ ARCHITECTURE RamArch OF Ram IS
 	BEGIN
 		PROCESS(clk) IS
 			BEGIN
-				IF (clk'event and clk='1') THEN  
+				IF (clk'event and clk='0') THEN  
 					IF we = '1' THEN
 						ram(to_integer(unsigned(address))) <= datain;
 					END IF;
