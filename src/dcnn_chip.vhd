@@ -90,12 +90,12 @@ begin
             comp_unit_operation => comp_unit_operation,
             comp_unit_relu => comp_unit_relu,
             comp_unit_flt_size => comp_unit_flt_size,
-            comp_unit_data1_out => comp_unit_result1,
-            comp_unit_data2_out => comp_unit_result2,
+            comp_unit_data1_out => comp_unit_bias1,
+            comp_unit_data2_out => comp_unit_bias2,
 
             comp_unit_finished => comp_unit_finished,
-            comp_unit_data1_in => comp_unit_bias1,
-            comp_unit_data2_in => comp_unit_bias2,
+            comp_unit_data1_in => comp_unit_result1,
+            comp_unit_data2_in => comp_unit_result2,
 
             argmax_ready => argmax_ready,
             argmax_data_out => argmax_data_outof_controller,
