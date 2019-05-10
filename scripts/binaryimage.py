@@ -25,7 +25,7 @@ image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 s=""
 for i in range(x):
     for j in range(y):
-        if image[i][j] <128:
+        if image[i][j] <128:  # threshold value
             s+='0'
         else:
             s+='1'
@@ -39,16 +39,27 @@ print(bits)
 compressed =""
 now=s[0] 
 count=1
+cnt=0
+packet=0
 for i in range (1,len(s)):
-    if s[i] != now or count == 2**bits-1:
+    if s[i] != now or count == 2**bits-1: # can't exceed 127 as we have only 7 bits to represent them
         compressed+=now+Encode(bits,count)
+        print (now," is added ",count," times.")
+        cnt+=count
+        packet+=1
         now=s[i]
         count=1
+
     else :
         count+=1
 compressed+=now+Encode(bits,count)
+print (now," is added ",count," times.")
+cnt+=count
+packet+=1
+# print(len(compressed))
 # print(compressed)
-print(len(compressed))
-with open ("compimg.txt",'w') as f:
+print(cnt)
+print(packet)
+with open ("img.txt",'w') as f:
     f.write(compressed)
-print(28*28*8)
+# print(28*28*8)
