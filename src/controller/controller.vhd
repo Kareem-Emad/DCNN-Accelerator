@@ -1172,7 +1172,7 @@ begin
                         cache_load<='1';
                     end if;
                 else    
-                    if filter_tbt = '1' then
+                    if filter_tbt = '1' and cache_width_ended_o = '0' then
                         cache_load <= '1';
                     else
                         cache_load <= '0';
@@ -1272,6 +1272,11 @@ begin
                         channel_zero_load <= '1';
                         channel_zero_data_load <= '0';
                         next_state <=  init_filter_window_1;
+                        if IsPoolLayer = '1' then
+                            -- A new channel for a pooling layer is like a new filter for a convolution layer. It writes to a new part of the memory.
+                            write_base_load <= '1';
+                            write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(new_size_squared_out));
+                        end if;
                     else
                         img_addr_offset_reset <= '1'; -- reset the image offset address
                         if nflt_layer_max_reached = '0' then -- new filter..
@@ -1288,14 +1293,11 @@ begin
                 write_base_load <= '1';
                 nflt_layer_enable <= '1';
                 num_channels_load <= '1';
-                if IsFCLayer = '1' or IsConvLayer = '1' then
-                    num_channels_data_load <= max_num_channels_data_out;
-                else -- FIXME: for pooling.
-                    num_channels_data_load <= "00001";
-                end if;
+                num_channels_data_load <= max_num_channels_data_out;
                 next_state <= fetch_filter_bias;
             when clean_up_new_layer =>
                 -- write_base_load <= '1';
+                -- if IsPoolLayer = '1' then
                 -- write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(layer_mem_size_out)); -- write_base += LayerMemSize
                 -- TODO: Fix img_base_addr <-- write_base_prev_data_out
                 -- img_base_addr = write_base_prev_data_out
@@ -1304,10 +1306,15 @@ begin
                 write_base_load <= '1';
                 img_base_addr_load <= '1';
                 img_base_addr_in <= std_logic_vector(unsigned(write_base_prev_data_out) - 1);
-                max_num_channels_load <= '1';
-                max_num_channels_data_in <= "0" & nflt_layer_temp;
-                num_channels_load <= '1';
-                num_channels_data_load <= "0" & nflt_layer_temp; -- ImgChannels = nflt_layer
+                if IsPoolLayer = '1' then
+                    num_channels_load <= '1';
+                    num_channels_data_load <= max_num_channels_data_out;
+                else
+                    max_num_channels_load <= '1';
+                    max_num_channels_data_in <= "0" & nflt_layer_temp;
+                    num_channels_load <= '1';
+                    num_channels_data_load <= "0" & nflt_layer_temp; -- ImgChannels = nflt_layer
+                end if;
                 img_width_load <= '1';
                 img_width_data_load <= new_width_out; -- ImgWidth = NewWidth
                 next_state <= fetch_layer_info_1;

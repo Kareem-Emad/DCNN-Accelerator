@@ -3,7 +3,7 @@ import numpy as np
 from scipy import signal
 
 IM_SIZE = 28
-EXPONENT = 8
+EXPONENT = 0
 
 np.random.seed(1)
 np.set_printoptions(precision=3, suppress=True)
@@ -38,17 +38,17 @@ def create_memory():
     # img = np.random.randn(IMSIZE, IMSIZE)
     # img = 9 * np.ones((IMSIZE, IMSIZE))
     img = np.arange(0, IM_SIZE * IM_SIZE, 1)
-    img = np.random.randint(0, high=256, size=IM_SIZE * IM_SIZE)
+    img = np.random.randint(-60, high=60, size=IM_SIZE * IM_SIZE)
     img2d = np.reshape(img, (IM_SIZE, IM_SIZE))
     for i in range(IM_SIZE):
         for j in range(IM_SIZE):
             print(img2d[i][j], end=" ")
         print("\n")
-    nlayers = 2
+    nlayers = 4
     # 0 = convolution, 1 = average pooling, 2 = FC
-    layer_types = np.array([0, 0, 2])
-    flt_nfilters = np.array([2, 1, 3])
-    flt_sizes = np.array([5, 5, 5])
+    layer_types = np.array([0, 1, 0, 2])
+    flt_nfilters = np.array([3, 1, 1, 10])
+    flt_sizes = np.array([5, 3, 5, 5])
     layer_dims = [IM_SIZE]
     for i in range(1, nlayers + 1):
         if layer_types[i - 1] == 2:
@@ -66,8 +66,6 @@ def create_memory():
         if i == 0:
             n_in_channels = 1
         else:
-            if layer_types[i] == 0:
-                n_in_channels = flt_nfilters[i - 1]
             if layer_types[i] == 2:
                 # FIXME: what if the user starts on an FC?
                 flt_nfilters[i] = 10
@@ -75,44 +73,72 @@ def create_memory():
                 prev_size = int(layer_dims[i])
                 n_in_channels = np.math.floor(prev_size * prev_size / 25.0)
                 layer_dims[i + 1]
+            else:
+                j = i - 1
+                while j >= 0 and layer_types[j] == 1:
+                    j = j - 1
+                if j == -1:
+                    n_in_channels = 1
+                else:
+                    n_in_channels = flt_nfilters[j]
         # print(layer_dims[i + 1])
         newSizeSquared = layer_dims[i + 1] * layer_dims[i + 1]
-        mem = np.append(mem, [layer_types[i], flt_nfilters[i], flt_sizes[i], layer_dims[i + 1], newSizeSquared,
-                              layer_dims[i + 1] * layer_dims[i + 1] * flt_nfilters[i]])
+        if layer_types[i] == 1:
+            totalLayerMemSize = layer_dims[i + 1] * layer_dims[i + 1] * n_in_channels
+        else:
+            totalLayerMemSize = layer_dims[i + 1] * layer_dims[i + 1] * flt_nfilters[i]
+        mem = np.append(mem, [layer_types[i], flt_nfilters[i], flt_sizes[i], layer_dims[i + 1], newSizeSquared, totalLayerMemSize])
         if layer_types[i] == 2:
             print(n_in_channels)
             mem = np.append(mem, n_in_channels)
-        if layer_types[i] == 0 or layer_types[i] == 2:
-            inp_image_to_layer = curr_img.copy()
-            for j in range(flt_nfilters[i]):
-                if layer_types[i] == 0:
-                    bias = 46  # np.random.randint(0, 20)
-                else:
-                    print("\nStarting FC Layer filter..")
-                    flattened_inp = np.reshape(inp_image_to_layer[:, :layer_dims[i], :layer_dims[i]], -1)
-                    size_to_take = int(n_in_channels * 5 * 5)
-                    inp_image_to_layer = np.reshape(
-                        flattened_inp[:size_to_take], (n_in_channels, 5, 5))
-                    bias = 0
+        inp_image_to_layer = curr_img.copy()
+        for j in range(flt_nfilters[i]):
+            if layer_types[i] == 0:
+                bias = 46  # np.random.randint(0, 20)
                 mem = np.append(mem, bias)
-                conv_outp = np.zeros((layer_dims[i + 1], layer_dims[i + 1])) + bias
-                outp_width, outp_height = conv_outp.shape
-                for ch in range(n_in_channels):
-                    # flt2d = np.random.randint(0, 20, size=flt_sizes[i] * flt_sizes[i])
-                    # flt2d = np.arange(flt_sizes[i] * flt_sizes[i]) * 2
-                    raw_flt2d = np.random.randint(-50, 50, size=flt_sizes[i] * flt_sizes[i])
-                    flt2d = np.flip(np.reshape(raw_flt2d, (flt_sizes[i], flt_sizes[i])), axis=0)
-                    flt1d = np.reshape(flt2d, -1)
-                    conv_inp = inp_image_to_layer[ch, :layer_dims[i], :layer_dims[i]]
-                    conv_outp += np.array((signal.convolve(conv_inp, np.flip(flt2d, axis=1), mode='valid')) / (2**EXPONENT), dtype=int)
-                    print(conv_outp.shape)
-                    print("Channel %d of Filter %d of layer %d: " % (ch, j, i), "\n", flt2d)
-                    print("Convolution Input for this channel: \n", conv_inp)
-                    print("Convolution Output for this channel: \n", conv_outp)
+            elif layer_types[i] == 2:
+                print("\nStarting FC Layer filter..")
+                flattened_inp = np.reshape(inp_image_to_layer[:, :layer_dims[i], :layer_dims[i]], -1)
+                size_to_take = int(n_in_channels * 5 * 5)
+                inp_image_to_layer = np.reshape(
+                    flattened_inp[:size_to_take], (n_in_channels, 5, 5))
+                bias = 0
+                mem = np.append(mem, bias)
+            else:
+                bias = 0
+            conv_outp = np.zeros((layer_dims[i + 1], layer_dims[i + 1])) + bias
+            outp_width, outp_height = conv_outp.shape
+            for ch in range(n_in_channels):
+                # flt2d = np.random.randint(0, 20, size=flt_sizes[i] * flt_sizes[i])
+                # flt2d = np.arange(flt_sizes[i] * flt_sizes[i]) * 2
+                raw_flt2d = np.random.randint(-1, 2, size=flt_sizes[i] * flt_sizes[i])
+                flt2d = np.flip(np.reshape(
+                    raw_flt2d, (flt_sizes[i], flt_sizes[i])), axis=0)
+                if layer_types[i] == 1:
+                    flt2d = np.ones((flt_sizes[i], flt_sizes[i]))
+                    if flt_sizes[i] == 3:
+                        flt2d = flt2d / (2**3)
+                    else:
+                        flt2d = flt2d / (2**5)
+                flt1d = np.reshape(flt2d, -1)
+                conv_inp = inp_image_to_layer[ch, :layer_dims[i], :layer_dims[i]]
+                if layer_types[i] == 1:
+                    conv_outp = np.array((signal.convolve(conv_inp, np.flip(
+                        flt2d, axis=1), mode='valid')) / (2**EXPONENT))
+                    conv_outp = np.floor(conv_outp)
+                    curr_img[ch, :outp_width, :outp_height] = conv_outp[:, :]
+                else:
+                    conv_outp += np.array((signal.convolve(conv_inp, np.flip(
+                        flt2d, axis=1), mode='valid')) / (2**EXPONENT), dtype=int)
                     mem = np.append(mem, flt1d)
-                if layer_types[i] == 2:
-                    finals[j] = conv_outp
-                print("******* THAT WAS THE FINAL OUTPUT OF THIS FILTER ************\n")
+                print(conv_outp.shape)
+                print("Channel %d of Filter %d of layer %d: " % (ch, j, i), "\n", flt2d)
+                print("Convolution Input for this channel: \n", conv_inp)
+                print("Convolution Output for this channel: \n", conv_outp)
+            if layer_types[i] == 2:
+                finals[j] = conv_outp
+            print("******* THAT WAS THE FINAL OUTPUT OF THIS FILTER ************\n")
+            if layer_types[i] != 1:
                 curr_img[j, :outp_width, :outp_height] = conv_outp[:, :]
             print("\n")
     print("Final class scores: \n", finals)
