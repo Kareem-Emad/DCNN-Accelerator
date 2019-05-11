@@ -3,7 +3,7 @@ import numpy as np
 from scipy import signal
 
 IM_SIZE = 28
-EXPONENT = 0
+EXPONENT = 6
 
 np.random.seed(1)
 np.set_printoptions(precision=3, suppress=True)
@@ -38,7 +38,7 @@ def create_memory():
     # img = np.random.randn(IMSIZE, IMSIZE)
     # img = 9 * np.ones((IMSIZE, IMSIZE))
     img = np.arange(0, IM_SIZE * IM_SIZE, 1)
-    img = np.random.randint(-60, high=60, size=IM_SIZE * IM_SIZE)
+    img = np.random.randint(0, high=256, size=IM_SIZE * IM_SIZE)
     img2d = np.reshape(img, (IM_SIZE, IM_SIZE))
     for i in range(IM_SIZE):
         for j in range(IM_SIZE):
@@ -111,7 +111,7 @@ def create_memory():
             for ch in range(n_in_channels):
                 # flt2d = np.random.randint(0, 20, size=flt_sizes[i] * flt_sizes[i])
                 # flt2d = np.arange(flt_sizes[i] * flt_sizes[i]) * 2
-                raw_flt2d = np.random.randint(-1, 2, size=flt_sizes[i] * flt_sizes[i])
+                raw_flt2d = np.random.randint(-256, 256, size=flt_sizes[i] * flt_sizes[i])
                 flt2d = np.flip(np.reshape(
                     raw_flt2d, (flt_sizes[i], flt_sizes[i])), axis=0)
                 if layer_types[i] == 1:
