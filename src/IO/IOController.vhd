@@ -78,7 +78,8 @@ BEGIN
 	BEGIN
 		CASE t_currentState IS
 			WHEN s_init =>
-				t_nextState <= s_waitO;
+				IF(i_rst = '0')	THEN
+					t_nextState <= s_waitO;
 
 			WHEN s_waitO =>
 				IF(i_int = '1' and i_op = '1' and i_dtype = '1')	THEN
@@ -95,13 +96,16 @@ BEGIN
 				END IF;
 
 			WHEN s_deImg =>
-				t_nextState <= s_waitRI;
+				IF(i_rst = '0')	THEN
+					t_nextState <= s_waitRI;
 
 			WHEN s_deCNN =>
-				t_nextState <= s_waitRC;
+				IF(i_rst = '0')	THEN
+					t_nextState <= s_waitRC;
 
 			WHEN s_process =>
-				t_nextState <= s_waitRL;
+				IF(i_rst = '0')	THEN
+					t_nextState <= s_waitRL;
 
 			WHEN s_waitRI =>
 				IF(i_decompI = '1')	THEN
@@ -128,7 +132,8 @@ BEGIN
 				END IF;
 
 			WHEN s_sendR =>
-				t_nextState <= s_waitO;
+				IF(i_rst = '0')	THEN
+					t_nextState <= s_waitO;
 		END CASE;
 	END PROCESS;
 
