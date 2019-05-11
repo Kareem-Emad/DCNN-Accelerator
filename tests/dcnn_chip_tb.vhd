@@ -47,7 +47,7 @@ begin
         reset <= '0';
         wait for period;
 
-        wait for 50000 * period;
+        wait for 500000 * period;
     end process;
 
     process is

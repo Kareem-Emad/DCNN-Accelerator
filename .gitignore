@@ -44,3 +44,5 @@ leospec.*
 *.sdf_typ.csd
 .fuse*
 .fuse*
+.vscode/ipch/48e5f5c2e8cff1bc/Filemem.ipch
+.vscode/ipch/48e5f5c2e8cff1bc/mmap_address.bin

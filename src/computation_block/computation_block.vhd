@@ -149,7 +149,7 @@ begin
         port map(
             d => filter_data_word,
             q => filter_data,
-            clk => clk,
+            clk => not_clk,
             load => filter_load_tmp,
             reset => filter_reset
         );

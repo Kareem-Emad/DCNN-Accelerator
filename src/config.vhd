@@ -7,8 +7,8 @@ package config is
     constant n_word : natural := 16;
     constant adder_id : natural := 0;
     constant comparator_id : natural := 1;
-    constant image_exp : integer := 6;
-    constant filter_exp : integer := 6;
+    constant image_exp : integer := 0;
+    constant filter_exp : integer := 0;
 
     subtype filtersize_t is std_logic;
     constant filter5x5 : std_logic := '0';

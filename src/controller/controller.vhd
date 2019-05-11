@@ -85,6 +85,7 @@ architecture Mixed of Controller is
         write_to_memory_1,
         write_to_memory_2,
         clean_up,
+        clean_up_new_filter,
         clean_up_new_layer,
         argmax_computation,
         write_classification,
@@ -154,9 +155,12 @@ architecture Mixed of Controller is
 
     signal num_channels_enable : std_logic;
     signal num_channels_load : std_logic;
-    signal num_channels_data_load : std_logic_vector(2 downto 0);
+    signal num_channels_data_load : std_logic_vector(4 downto 0);
     signal num_channels_max_reached : std_logic;
-    signal num_channels_out : std_logic_vector(2 downto 0);
+    signal num_channels_out : std_logic_vector(4 downto 0);
+
+    signal max_num_channels_load : std_logic;
+    signal max_num_channels_data_in, max_num_channels_data_out : std_logic_vector(4 downto 0);
     
     signal img_width_load : std_logic;
     signal img_width_data_load : std_logic_vector(4 downto 0);
@@ -264,13 +268,18 @@ architecture Mixed of Controller is
     signal write_offset_load : std_logic;
     signal write_offset_data_in : std_logic_vector(M-1 downto 0);
     signal write_offset_data_out : std_logic_vector(M-1 downto 0);
-
+    -- Image Offset
     signal img_addr_en: std_logic;
     signal img_addr_mode: std_logic;
     signal img_addr_max_reached: std_logic;
     signal img_addr_offset : std_logic_vector(M-1 downto 0);
-    --TO-DO: needs a flip flop!
+    signal img_addr_offset_reset : std_logic;
+    signal img_addr_offset_actual_reset : std_logic;
+    -- Image Base Address
+    signal img_base_addr_load : std_logic;
+    signal img_base_addr_in : std_logic_vector(M-1 downto 0);
     signal img_base_addr:  std_logic_vector(M-1 downto 0);
+
     -- Signals for Argmax computation
     signal class_cntr_enable : std_logic;
     signal class_cntr_max_val_in : std_logic_vector(3 downto 0);
@@ -325,7 +334,7 @@ begin
    
     zeros <= (others => '0');
     ones <= (others => '1');
-    img_base_addr <= X"9857";
+    -- img_base_addr <= X"9857";
     write_base_rst_data <= X"9B68";
     filter_data_out <= mem_data_in when write_mem_to_fltr = '1' else (others => '0');
     filter_ready_out <= '1' when write_mem_to_fltr = '1' else '0';
@@ -346,6 +355,7 @@ begin
     channel_zero_data_load_actual(0) <= channel_zero_data_load;
     channel_zero_out <= channel_zero_out_actual(0);
     class_cntr_max_val_in <= "1010";
+    img_addr_offset_actual_reset <= img_addr_offset_reset or gen_reset;
 
 --FOR TESTING PURPOSES
     -- image_window: entity dcnn.ImageWindow
@@ -417,12 +427,19 @@ begin
     );
 
     num_channels : entity dcnn.LoadedCounter
-    generic map (N => 3)
+    generic map (N => 5)
     port map (
         clk => clk, reset => gen_reset, enable => num_channels_enable,
-        load => num_channels_load, mode_in => '1', max_val_in => zeros(2 downto 0),
+        load => num_channels_load, mode_in => '1', max_val_in => zeros(4 downto 0),
         load_data_in => num_channels_data_load, max_reached_out => num_channels_max_reached,
         counter_out => num_channels_out
+    );
+
+    max_num_channels_inst : entity dcnn.Reg
+    generic map (N => 5)
+    port map (
+        clk => clk, reset => gen_reset, load => max_num_channels_load,
+        d => max_num_channels_data_in, q => max_num_channels_data_out, rst_data => "00000"
     );
 
  
@@ -478,13 +495,24 @@ begin
         max_reached_out => addr1_max_reached,
         counter_out => addr1_data
     );
+
+    img_base_addr_inst : entity dcnn.Reg
+    port map (
+        clk => clk,
+        reset => reset,
+        load => img_base_addr_load,
+        d => img_base_addr_in,
+        q => img_base_addr,
+        rst_data => X"9857"
+    );
+
     img_mem_addr_offset : entity dcnn.Counter
     generic map (
         N => 16
     ) 
     port map (
         clk => clk,
-        reset => gen_reset,
+        reset => img_addr_offset_actual_reset,
         enable => img_addr_en,
         mode_in => img_addr_mode,
         max_val_in => ones,
@@ -604,7 +632,7 @@ begin
     -- Write to memory.
     reg_write_base : entity dcnn.Reg
     port map(
-        clk => clk,
+        clk => not_clk,
         reset => gen_reset,
         load => write_base_load,
         d => write_base_data_in,
@@ -657,14 +685,14 @@ begin
     write_base_data_out, bias_offset_data_out, bias1, bias2,
     bias1_data_out, comp_unit_data1_in, comp_unit_data2_in, comp_unit_finished, new_size_squared_out,
     nlayers_max_reached, num_channels_max_reached,
-    new_width_out, layer_mem_size_out, comp_unit_data2_in,
+    new_width_out, layer_mem_size_out,
     nflt_layer_max_reached, class_cntr_max_reached_out,
     class_cntr_counter_out, img_addr_offset, img_base_addr,
     cache_height_ended_o,edged_o,cache_width_ended_o,second_fetch_o,wind_width_ended_o,
     cache_data_out,cache_height_ended,cache_width_ended,ini_wind_o,ini_wind,
     finish_wind_row,finish_wind_row_o, begin_ftc_o, cache_width_1,
     cache_height_1, wind_width_count, argmax_data_in,
-    cntr1_max_reached, filter_tbt, nflt_layer_temp, nflt_layer_out
+    cntr1_max_reached, filter_tbt, nflt_layer_temp, nflt_layer_out, max_num_channels_data_out
     )
     begin
         -- Signals associated with components
@@ -688,6 +716,8 @@ begin
         num_channels_enable <= '0';
         num_channels_load <= '0';
         num_channels_data_load <= (others => '0');
+        max_num_channels_load <= '0';
+        max_num_channels_data_in <= (others => '0');
         img_width_load <= '0';
         img_width_data_load <= (others => '0');
         -- Filter biases
@@ -703,6 +733,9 @@ begin
         -- Memory Addressing counter
         addr1_enable <= '0';
         addr1_mode <= '0';
+        img_addr_offset_reset <= '0';
+        img_base_addr_load <= '0';
+        img_base_addr_in <= (others => '0');
         -- Image Cache
         cache_data_in <= (others => '0');
         cache_out_sel <= (others => '0');
@@ -780,7 +813,7 @@ begin
                 mem_read <= '1';
                 nlayers_load <= '1';
                 nlayers_data_load <= mem_data_in(2 downto 0);
-                num_channels_data_load <= "001";
+                num_channels_data_load <= "00001";
                 num_channels_load <= '1';
                 next_state <= fetch_layer_info_1;
             when fetch_layer_info_1 => -- Fetches the layer type from memory
@@ -824,7 +857,7 @@ begin
                 mem_read <= '1';
                 layer_mem_size_load <= '1';
                 layer_mem_size_data_load <= mem_data_in;
-                if layer_type_out = "01" then -- If FC, fetch the no. of channels.
+                if layer_type_out = "10" then -- If FC, fetch the no. of channels.
                     next_state <= fetch_layer_info_7;
                 else
                     next_state <= fetch_filter_bias;
@@ -834,14 +867,16 @@ begin
                 mem_addr_out <= addr1_data;
                 mem_read <= '1';
                 num_channels_load <= '1';
-                num_channels_data_load <= mem_data_in(2 downto 0);
+                num_channels_data_load <= mem_data_in(4 downto 0);
+                max_num_channels_load <= '1';
+                max_num_channels_data_in <= mem_data_in(4 downto 0);
                 img_width_load <= '1';
                 img_width_data_load <= "00101"; -- i.e. 5
                 next_state <= fetch_filter_bias;
             when fetch_filter_bias =>
                 channel_zero_load <= '1';
                 channel_zero_data_load <= '1';
-                if IsConvLayer = '1' then
+                if IsConvLayer = '1' or IsFCLayer = '1' then
                     addr1_enable <= '1';
                     mem_addr_out <= addr1_data;
                     mem_read <= '1';
@@ -859,7 +894,7 @@ begin
                 else
                     mem_addr_out <= addr1_data;
                     mem_read <= '1';
-                    addr1_enable <= '1';
+                    -- addr1_enable <= '1';
                     write_mem_to_fltr <= '1';
                     cntr1_reset <= '1';
                     next_state <= init_filter_window_2;
@@ -868,9 +903,9 @@ begin
                 cntr1_enable <= '1';
                 cntr1_mode <= '0';
                 if filter_tbt = '1' then
-                    cntr1_max_val <= "001000"; -- (9 - 1)
+                    cntr1_max_val <= "001001"; -- (9 - 1)
                 else
-                    cntr1_max_val <= "011000"; -- (25 - 1)
+                    cntr1_max_val <= "011001"; -- (25 - 1)
                 end if;
                 addr1_enable <= '1';
                 mem_addr_out <= addr1_data;
@@ -1007,10 +1042,8 @@ begin
                 bias1 <= (others => '0');
                 if IsPoolLayer = '1' then -- Pooling
                     comp_unit_ready <= '1';
-                elsif IsFCLayer = '1' then -- FC
-                    bias1 <= (others =>'0');
                 elsif channel_zero_out = '1' then
-                        bias1 <= flt_bias_out;
+                    bias1 <= flt_bias_out;
                 else
                     mem_addr_out <= std_logic_vector(unsigned(write_offset_data_out) + unsigned(write_base_data_out));
                     mem_read <= '1';
@@ -1019,7 +1052,8 @@ begin
                     bias_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) +1);
                 end if;
                 comp_unit_data1_out <= bias1;
-                comp_unit_relu <= num_channels_max_reached;
+                -- TODO: get ReLU to work.
+                -- comp_unit_relu <= num_channels_max_reached;
                 if filter_tbt = '1' then
                     next_state <= start_convolution_2;
                 else
@@ -1041,12 +1075,16 @@ begin
                 end if;
                 comp_unit_data2_out <= bias2;
                 comp_unit_ready <= '1';
-                comp_unit_relu <= num_channels_max_reached;
+                -- comp_unit_relu <= num_channels_max_reached;
                 next_state <= waiting_on_computation;
                 wind_width_count_rst <= '0';
             when waiting_on_computation =>
                 if comp_unit_finished = '1' then
-                    next_state <= fetch_to_cache;
+                    if IsFCLayer = '1' then
+                        next_state <= write_to_memory_1;
+                    else
+                        next_state <= fetch_to_cache;
+                    end if;
                 else
                     next_state <= waiting_on_computation;
                 end if;
@@ -1074,7 +1112,7 @@ begin
                     else
                         cache_height_count_en<='0'; 
                     end if;
-
+                    
                     next_state<=write_to_memory_1;
                     second_fetch<='0';
                      
@@ -1127,7 +1165,7 @@ begin
                         cache_load<='1';
                     end if;
                 else    
-                    cache_load<='1';
+                    cache_load<='0';
                     cache_data_in<=(others=>'0'); --insert 0
                     img_addr_en <='0';
                     mem_read <='0';
@@ -1220,14 +1258,13 @@ begin
                     write_offset_data_in <= (others => '0'); -- write_offset = 0
                     if num_channels_max_reached = '0' then -- new channel
                         num_channels_enable <= '1'; -- decrement the channel
+                        channel_zero_load <= '1';
+                        channel_zero_data_load <= '0';
                         next_state <=  init_filter_window_1;
                     else
-                        -- TODO: reset img_offset_addr counter
-                        write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(new_size_squared_out));
-                        write_base_load <= '1';
+                        img_addr_offset_reset <= '1'; -- reset the image offset address
                         if nflt_layer_max_reached = '0' then -- new filter..
-                            nflt_layer_enable <= '1';
-                            next_state <= fetch_filter_bias;
+                            next_state <= clean_up_new_filter;
                         elsif nlayers_max_reached = '0' then -- new layer
                             next_state <= clean_up_new_layer;
                         else -- finished all layers
@@ -1235,13 +1272,31 @@ begin
                         end if;
                     end if;
                 end if;
-            when clean_up_new_layer =>
+            when clean_up_new_filter =>
+                write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(new_size_squared_out));
                 write_base_load <= '1';
-                write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(layer_mem_size_out)); -- write_base += LayerMemSize
-                -- TODO: Fix img_base_addr <-- write_base_prev_data_out
-                -- img_base_addr = write_base_addr_prev
+                nflt_layer_enable <= '1';
                 num_channels_load <= '1';
-                num_channels_data_load <= nflt_layer_temp(2 downto 0); -- ImgChannels = nflt_layer
+                if IsFCLayer = '1' or IsConvLayer = '1' then
+                    num_channels_data_load <= max_num_channels_data_out;
+                else -- FIXME: for pooling.
+                    num_channels_data_load <= "00001";
+                end if;
+                next_state <= fetch_filter_bias;
+            when clean_up_new_layer =>
+                -- write_base_load <= '1';
+                -- write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(layer_mem_size_out)); -- write_base += LayerMemSize
+                -- TODO: Fix img_base_addr <-- write_base_prev_data_out
+                -- img_base_addr = write_base_prev_data_out
+                nlayers_counter_enable <= '1';
+                write_base_data_in <= std_logic_vector(unsigned(write_base_data_out) + unsigned(new_size_squared_out));
+                write_base_load <= '1';
+                img_base_addr_load <= '1';
+                img_base_addr_in <= std_logic_vector(unsigned(write_base_prev_data_out) - 1);
+                max_num_channels_load <= '1';
+                max_num_channels_data_in <= "0" & nflt_layer_temp;
+                num_channels_load <= '1';
+                num_channels_data_load <= "0" & nflt_layer_temp; -- ImgChannels = nflt_layer
                 img_width_load <= '1';
                 img_width_data_load <= new_width_out; -- ImgWidth = NewWidth
                 next_state <= fetch_layer_info_1;
@@ -1250,7 +1305,7 @@ begin
                     next_state <= write_classification;
                 else
                     class_cntr_enable <= '1';
-                    mem_addr_out <=  std_logic_vector(unsigned(class_cntr_counter_out) + unsigned(write_base_data_out));
+                    mem_addr_out <=  std_logic_vector(unsigned(class_cntr_counter_out) + unsigned(write_base_data_out) - 9);
                     mem_read <= '1';
                     argmax_ready <= '1';
                     argmax_data_out <= mem_data_in;
