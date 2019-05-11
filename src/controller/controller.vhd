@@ -326,9 +326,6 @@ begin
     --                 &wind_out(2)
     --                 &wind_out(1)
     --                 &wind_out(0);
-
-
-
     
    
    
@@ -348,8 +345,8 @@ begin
     img_height_out <= img_width_out;
     not_clk <= "not"(clk);
     cache_rst_actual <= cache_rst when reset = '0' else '1';
-    cache_width_1 <= (15 downto 5=>'0')&std_logic_vector(unsigned(img_width_out) - 1);
-    cache_height_1 <= (15 downto 5=>'0')&std_logic_vector(unsigned(img_height_out) - 1);
+    cache_width_1 <= (15 downto 5=>'0') & std_logic_vector(unsigned(img_width_out) - 1);
+    cache_height_1 <= (15 downto 5=>'0') & std_logic_vector(unsigned(img_height_out) - 1);
     --Three by Three filter
     filter_tbt <='1' when flt_size_out = std_logic_vector(to_signed(3, 3)) else '0'; 
     channel_zero_data_load_actual(0) <= channel_zero_data_load;
@@ -675,7 +672,6 @@ begin
         max_val_in => class_cntr_max_val_in, -- max value in is 10.
         counter_out => class_cntr_counter_out
     );
-
     
     
     comp_ns : process(current_state,
@@ -748,7 +744,8 @@ begin
         cache_height_count_rst <= '0';
         cache_height_count_en <= '0';
         cache_height_count_mode <= "00";
-        max_height <= X"001C"; -- Is this real?
+        -- max_height <= X"001C"; -- Is this real?
+        max_height <= cache_height_1;
         edged <= edged_o;
         second_fetch <= second_fetch_o;
         begin_ftc <= begin_ftc_o;
@@ -903,9 +900,9 @@ begin
                 cntr1_enable <= '1';
                 cntr1_mode <= '0';
                 if filter_tbt = '1' then
-                    cntr1_max_val <= "001001"; -- (9 - 1)
+                    cntr1_max_val <= "001001"; -- 9
                 else
-                    cntr1_max_val <= "011001"; -- (25 - 1)
+                    cntr1_max_val <= "011001"; -- 25
                 end if;
                 addr1_enable <= '1';
                 mem_addr_out <= addr1_data;
@@ -1016,7 +1013,11 @@ begin
                 wind_rst<='0';                
                 cache_height_count_en <= '0';
                 if wind_width_ended_o = '0' then  --If window_col_count != 5
-                    wind_max_width <= x"0004";
+                    if filter_tbt = '1' then
+                        wind_max_width <= x"0003";
+                    else
+                        wind_max_width <= x"0004";
+                    end if;
                     wind_col_in<= cache_data_out;
                     wind_en <= '1';
 
@@ -1037,7 +1038,6 @@ begin
                     next_state <= start_convolution_1;   
                     wind_max_width<=cache_width_1; 
                 end if;
-         
             when start_convolution_1 =>
                 bias1 <= (others => '0');
                 if IsPoolLayer = '1' then -- Pooling
@@ -1144,7 +1144,7 @@ begin
                     end if;
 
                 end if;
-    
+                
                    --Deciding if i'm about to load 0's into cache
                 if (cache_width_ended='1' and cache_height_ended='1') or edged_o='1' then -- for self latching
                    edged<='1';
@@ -1165,7 +1165,11 @@ begin
                         cache_load<='1';
                     end if;
                 else    
-                    cache_load<='0';
+                    if filter_tbt = '1' then
+                        cache_load <= '1';
+                    else
+                        cache_load <= '0';
+                    end if;
                     cache_data_in<=(others=>'0'); --insert 0
                     img_addr_en <='0';
                     mem_read <='0';

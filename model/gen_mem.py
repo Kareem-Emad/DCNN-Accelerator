@@ -44,11 +44,11 @@ def create_memory():
         for j in range(IM_SIZE):
             print(img2d[i][j], end=" ")
         print("\n")
-    nlayers = 3
+    nlayers = 1
     # 0 = convolution, 1 = average pooling, 2 = FC
     layer_types = np.array([0, 0, 2])
     flt_nfilters = np.array([2, 1, 3])
-    flt_sizes = np.array([5, 5, 5])
+    flt_sizes = np.array([3, 5, 5])
     layer_dims = [IM_SIZE]
     for i in range(1, nlayers + 1):
         if layer_types[i - 1] == 2:
@@ -87,7 +87,7 @@ def create_memory():
                 if layer_types[i] == 0:
                     bias = 46  # np.random.randint(0, 20)
                 else:
-                    print("\nStarting FC Layer..")
+                    print("\nStarting FC Layer filter..")
                     flattened_inp = np.reshape(inp_image_to_layer[:, :layer_dims[i], :layer_dims[i]], -1)
                     size_to_take = int(n_in_channels * 5 * 5)
                     inp_image_to_layer = np.reshape(
@@ -104,14 +104,14 @@ def create_memory():
                     flt1d = np.reshape(flt2d, -1)
                     conv_inp = inp_image_to_layer[ch, :layer_dims[i], :layer_dims[i]]
                     conv_outp += (signal.convolve(conv_inp, np.flip(flt2d, axis=1), mode='valid')) / (2**EXPONENT)
-                    print("Channel %d of Filter %d of layer %d: " % (ch, j, i), flt2d)
-                    print("Convolution Input for this channel: ")
-                    print(conv_inp)
-                    print("Convolution Output for this channel: ")
-                    print(conv_outp)
+                    print(conv_outp.shape)
+                    print("Channel %d of Filter %d of layer %d: " % (ch, j, i), "\n", flt2d)
+                    print("Convolution Input for this channel: \n", conv_inp)
+                    print("Convolution Output for this channel: \n", conv_outp)
                     mem = np.append(mem, flt1d)
-                print("******* THAT WAS THE FINAL OUTPUT OF THIS FILTER ************")
+                print("******* THAT WAS THE FINAL OUTPUT OF THIS FILTER ************\n")
                 curr_img[j, :outp_width, :outp_height] = conv_outp[:, :]
+            print("\n")
     data_addr = mem.size
     # mem = np.append(mem, img)
     # outp_addr = mem.size - img.size

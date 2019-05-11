@@ -41,9 +41,11 @@ architecture Structural of DCNNChip is
     signal comp_unit_ready, comp_unit_operation, comp_unit_relu : std_logic;
     signal comp_unit_flt_size, comp_unit_finished : std_logic;
     signal comp_unit_buffer_finished : std_logic;
-    signal comp_unit_bias1, comp_unit_bias2 : std_logic_vector(N-1 downto 0);
-    signal comp_unit_result1 : std_logic_vector(N-1 downto 0);
-    signal comp_unit_result2 : std_logic_vector(N-1 downto 0);
+    signal comp_unit_bias_1, comp_unit_bias_2 : std_logic_vector(N-1 downto 0);
+    signal comp_unit_result_1, comp_unit_result_2 : std_logic_vector(N-1 downto 0);
+
+    signal controller_bias_1, controller_bias_2 : std_logic_vector(N-1 downto 0);
+    signal controller_result_1, controller_result_2 : std_logic_vector(N-1 downto 0);
     
     -- Argmax Programming
     signal argmax_ready : std_logic;
@@ -51,9 +53,23 @@ architecture Structural of DCNNChip is
     signal argmax_data_out : std_logic_vector(3 downto 0);
     signal argmax_data_into_controller : std_logic_vector(N-1 downto 0);
 
+    signal flt_size_out : std_logic_vector(0 downto 0);
 
 begin
+    comp_unit_bias_1 <= controller_bias_2 when flt_size_out(0) = filter3x3 or comp_unit_flt_size = filter3x3 else controller_bias_1;
+    comp_unit_bias_2 <= controller_bias_1 when flt_size_out(0) = filter3x3 or comp_unit_flt_size = filter3x3 else controller_bias_2;
+
+    controller_result_1 <= comp_unit_result_2 when flt_size_out(0) = filter3x3 else comp_unit_result_1;
+    controller_result_2 <= comp_unit_result_1 when flt_size_out(0) = filter3x3 else comp_unit_result_2;
+
     argmax_data_into_controller <= (15 downto 4 => '0') & argmax_data_out;
+
+    flt_size_reg : entity dcnn.Reg
+    generic map (N => 1)
+    port map (
+        clk => clk, reset => reset, load => comp_unit_ready,
+        d(0) => comp_unit_flt_size, q => flt_size_out, rst_data => "0"
+    );
 
     flip_image_wind : process(image_wind_col)
     begin
@@ -88,13 +104,13 @@ begin
             comp_unit_operation => comp_unit_operation,
             comp_unit_relu => comp_unit_relu,
             comp_unit_flt_size => comp_unit_flt_size,
-            comp_unit_data1_out => comp_unit_bias1,
-            comp_unit_data2_out => comp_unit_bias2,
+            comp_unit_data1_out => controller_bias_1,
+            comp_unit_data2_out => controller_bias_2,
 
             comp_unit_buffer_finished => comp_unit_buffer_finished,
             comp_unit_finished => comp_unit_finished,
-            comp_unit_data1_in => comp_unit_result1,
-            comp_unit_data2_in => comp_unit_result2,
+            comp_unit_data1_in => controller_result_1,
+            comp_unit_data2_in => controller_result_2,
 
             argmax_ready => argmax_ready,
             argmax_data_out => argmax_data_outof_controller,
@@ -119,10 +135,10 @@ begin
             operation => comp_unit_operation,
             compute_relu => comp_unit_relu,
             filter_size => comp_unit_flt_size,
-            output1_init => comp_unit_bias1,
-            output2_init => comp_unit_bias2,
-            output1 => comp_unit_result1,
-            output2 => comp_unit_result2,
+            output1_init => comp_unit_bias_1,
+            output2_init => comp_unit_bias_2,
+            output1 => comp_unit_result_1,
+            output2 => comp_unit_result_2,
             buffer_ready => comp_unit_buffer_finished,
             ready => comp_unit_finished,
 
