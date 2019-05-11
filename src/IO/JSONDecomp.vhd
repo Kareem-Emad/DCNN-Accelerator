@@ -15,7 +15,7 @@ End Entity;
 
 Architecture myArch of JDecomp is
 
-component DefCounter is 
+component counter is 
         
        port(Clock, CLR ,ldEn: in  std_logic;
 	cValue : in std_logic_vector(6 downto 0);
@@ -80,16 +80,14 @@ if(rising_edge(clk)) then
 		v <= recPack(15);
 		countVal <= recPack(14 downto 8);
 		loadEn <= '1';
-		upCEn <= '1';
-		shRegEn <= '1';
 		packDone <= '0';
 		rstUpC <= '0';
 	else
-			if (countVal = "0000000") then
-				upCEn <= '0';
-				shRegEn <= '0';
-				rstUpC <= '1';
+			if (bgn = '1' and LorR = '0') then 
+				upCEn <= '1';
+				shRegEn <= '1';
 			end if;
+
 			
 			if (delayedPacket = '1') then
 				packDone <= '1';
@@ -104,12 +102,14 @@ if(rising_edge(clk)) then
 				countVal <= recPack(6 downto 0);
 				bgnSec <= '0';
 				loadEn <= '1';
-				shRegEn <= '1';
-				upCEn <= '1';
-			else
-				loadEn <= '0';
-			end if;
+				
+			elsif(bgn = '1' and LorR= '1' and bgnSec ='0') then
 
+				shRegEn <= '1';
+				upCEn <= '1';	
+				loadEn <= '0';		
+			end if;
+			
 			if(upCount = "1111") then
 				wdDone <= '1';
 				
@@ -132,7 +132,6 @@ if(rising_edge(clk)) then
 				
 			end if;
 
-
 			if(LorR='0' and dnCount="0000000") then 
 				if(wdDone = '1') then 
 					delayedPacket <='1';
@@ -147,7 +146,7 @@ if(rising_edge(clk)) then
 end if;
 end process;
 	finUpCRst <= rst or rstUpC;
-	DC : DefCounter port map (clk,rst,loadEn,countVal,dnCount);
+	DC : counter port map (clk,rst,loadEn,countVal,dnCount);
 	UC : fBitUpCounter port map (upCEn,clk,finUpCRst,upCount);
 	shR : shiftReg port map (shRegEn,v,clk,rst,decPacket);
 	packetdone <= packDone;

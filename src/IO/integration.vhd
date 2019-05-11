@@ -70,5 +70,7 @@ BEGIN
 
 	mem:	ram PORT MAP(i_clk, writeEnMem, memAddress, memWordWrite, memWordRead);
 
+	o_dout <= memWordRead(3 downto 0);
+
 END ARCHITECTURE;
 --	ioU:	io PORT MAP(

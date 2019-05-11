@@ -287,6 +287,15 @@
 		},
 
 		{
+			"out_depth":10,
+			"sx":1,
+			"sy":1,
+			"out_sx":1,
+			"layer_type":"pooling",
+			"num_inputs":10
+		},
+
+		{
 		"out_depth":10,
 		"sx":1,
 		"sy":1,
@@ -11902,13 +11911,6 @@
 					"9":-0.03906677672956825
 				}
 			}
-		},
-		{
-			"out_depth":10,
-			"sx":1,
-			"sy":1,
-			"layer_type":"softmax",
-			"num_inputs":10
 		}
 	]
 }
