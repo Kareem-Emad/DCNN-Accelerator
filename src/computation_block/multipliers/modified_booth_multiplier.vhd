@@ -40,21 +40,37 @@ begin
         if (cnt_enable = '0') then
             -- intializing second operator 
             -- M,-M,2M,-2M
-            positive_M(15 downto 0) <= M;
-            positive_M(31 downto 16) <= (OTHERS=>'0');
+            if(M(15) = '1') then
 
- 	    negative_M <=  -("0000000000000000"&M);
-           --negative_M(31 downto 16) <= (OTHERS=>'0');
-            
+                positive_M <= -("0000000000000000"&(-M));
+    
+                 negative_M <=  ("0000000000000000"&(-M));
+               --negative_M(31 downto 16) <= (OTHERS=>'0');
+                
+    
+                positive_2M <= -("000000000000000"&(-M)&'0');
+    
+                negative_2M <= ("000000000000000"&(-M)&'0');
+                --negative_2M(31 downto 17) <= (OTHERS=>'0');
+            else
+                positive_M(15 downto 0) <= M;
+                positive_M(31 downto 16) <= (OTHERS=>'0');
 
-            positive_2M(16 downto 0) <= M&'0';
-            positive_2M(31 downto 17) <= (OTHERS=>'0');
+                negative_M <=  -("0000000000000000"&M);
+            --negative_M(31 downto 16) <= (OTHERS=>'0');
+                
 
-            negative_2M <= -("000000000000000"&M&'0');
-            --negative_2M(31 downto 17) <= (OTHERS=>'0');
+                positive_2M(16 downto 0) <= M&'0';
+                positive_2M(31 downto 17) <= (OTHERS=>'0');
+
+                negative_2M <= -("000000000000000"&M&'0');
+                --negative_2M(31 downto 17) <= (OTHERS=>'0');
+
+            end if;
+
 
             aux_product <= (OTHERS=>'0');
-	    product <= aux_product; 
+	        product <= aux_product; 
 
             shifting_R(16 downto 0) <= R&'0';
             shifting_R(31 downto 17) <= (OTHERS=>'0');
