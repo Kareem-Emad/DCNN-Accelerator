@@ -62,6 +62,7 @@ end Controller;
 architecture Mixed of Controller is
     type state_type is (
         got_out_of_reset,
+        wait_for_io,
         fetch_nlayers,
         fetch_layer_info_1,
         fetch_layer_info_2,
@@ -674,7 +675,7 @@ begin
     );
     
     
-    comp_ns : process(current_state,
+    comp_ns : process(current_state, io_ready_in,
     addr1_data, mem_data_in,
     layer_type_out, IsConvLayer, IsPoolLayer,
     IsFCLayer, channel_zero_out, flt_bias_out, write_offset_data_out,
@@ -803,7 +804,13 @@ begin
         next_state <= current_state;
         case current_state is
             when got_out_of_reset =>
-                next_state <= fetch_nlayers;
+                next_state <= wait_for_io;
+            when wait_for_io =>
+                if io_ready_in = '0' then
+                    next_state <= wait_for_io;
+                else
+                    next_state <= fetch_nlayers;
+                end if;
             when fetch_nlayers => -- Fetches the number of layers from memory
                 addr1_enable <= '1';
                 mem_addr_out <= addr1_data;

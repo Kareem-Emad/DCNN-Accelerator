@@ -15,7 +15,7 @@ End Entity;
 
 Architecture myArch of JDecomp is
 
-component counter is 
+component DefCounter is 
         
        port(Clock, CLR ,ldEn: in  std_logic;
 	cValue : in std_logic_vector(6 downto 0);
@@ -147,7 +147,7 @@ if(rising_edge(clk)) then
 end if;
 end process;
 	finUpCRst <= rst or rstUpC;
-	DC : counter port map (clk,rst,loadEn,countVal,dnCount);
+	DC : DefCounter port map (clk,rst,loadEn,countVal,dnCount);
 	UC : fBitUpCounter port map (upCEn,clk,finUpCRst,upCount);
 	shR : shiftReg port map (shRegEn,v,clk,rst,decPacket);
 	packetdone <= packDone;
