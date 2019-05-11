@@ -2,15 +2,15 @@ library IEEE;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all; 
       
- entity counter is 
+ entity DefCounter is 
         
        port(Clock, CLR,ldEn : in  std_logic;
 	cValue : in std_logic_vector(6 downto 0);
         Q : out std_logic_vector(6 downto 0));
         
-end counter;
+end DefCounter;
         
-architecture archi of counter is  
+architecture archi of DefCounter is  
         
        signal tmp: std_logic_vector(6 downto 0);
         

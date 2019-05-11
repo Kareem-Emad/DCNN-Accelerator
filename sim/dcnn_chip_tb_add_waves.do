@@ -9,10 +9,10 @@ sim:/dcnnchiptb/write_mem \
 sim:/dcnnchiptb/address \
 sim:/dcnnchiptb/data_into_mem \
 sim:/dcnnchiptb/data_outof_mem \
-sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_result1 \
-sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_result2 \
-sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_bias1 \
-sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_bias2 \
+sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_result_1 \
+sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_result_2 \
+sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_bias_1 \
+sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_bias_2 \
 sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_finished \
 sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_ready \
 sim:/dcnnchiptb/dcnn_chip_inst/comp_unit_operation \

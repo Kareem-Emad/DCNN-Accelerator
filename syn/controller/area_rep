@@ -11,64 +11,67 @@ Cell: Controller    View: Mixed    Library: work
 AdvancedCounter_16    work            1 x    185    185 gates
                                                1      1 fake_gnd
 Cache_5_16_28_5       work            1 x  20157  20157 gates
-and02                 tsmc035_typ   158 x      1    199 gates
-and03                 tsmc035_typ     6 x      2      9 gates
-and04                 tsmc035_typ    11 x      2     19 gates
-ao21                  tsmc035_typ     8 x      2     14 gates
-ao22                  tsmc035_typ    11 x      2     22 gates
-ao221                 tsmc035_typ     1 x      2      2 gates
-ao32                  tsmc035_typ     2 x      2      4 gates
-aoi21                 tsmc035_typ    46 x      1     57 gates
-aoi22                 tsmc035_typ    29 x      1     43 gates
-aoi221                tsmc035_typ     1 x      2      2 gates
-aoi222                tsmc035_typ    23 x      2     52 gates
-aoi32                 tsmc035_typ     6 x      2     10 gates
-aoi321                tsmc035_typ     1 x      2      2 gates
-aoi322                tsmc035_typ     6 x      2     15 gates
-aoi332                tsmc035_typ     2 x      2      5 gates
-aoi422                tsmc035_typ     1 x      3      3 gates
-aoi43                 tsmc035_typ     1 x      2      2 gates
-buf02                 tsmc035_typ    24 x      1     24 gates
-buf16                 tsmc035_typ    38 x      3    112 gates
+and02                 tsmc035_typ   159 x      1    200 gates
+and03                 tsmc035_typ     7 x      2     10 gates
+and04                 tsmc035_typ    12 x      2     21 gates
+ao21                  tsmc035_typ    16 x      2     28 gates
+ao22                  tsmc035_typ    13 x      2     26 gates
+ao221                 tsmc035_typ     3 x      2      7 gates
+ao32                  tsmc035_typ    16 x      2     32 gates
+aoi21                 tsmc035_typ    38 x      1     47 gates
+aoi22                 tsmc035_typ    25 x      1     37 gates
+aoi221                tsmc035_typ     2 x      2      4 gates
+aoi222                tsmc035_typ    34 x      2     76 gates
+aoi32                 tsmc035_typ     7 x      2     12 gates
+aoi321                tsmc035_typ     5 x      2     11 gates
+aoi322                tsmc035_typ     4 x      2     10 gates
+aoi332                tsmc035_typ     1 x      2      2 gates
+aoi43                 tsmc035_typ     3 x      2      7 gates
+buf02                 tsmc035_typ    20 x      1     20 gates
+buf04                 tsmc035_typ     3 x      1      4 gates
+buf16                 tsmc035_typ    34 x      3    100 gates
 dff                   tsmc035_typ    16 x      5     77 gates
-dffr                  tsmc035_typ   222 x      6   1239 gates
-dffs_ni               tsmc035_typ    12 x      6     70 gates
+dffr                  tsmc035_typ   240 x      6   1339 gates
+dffs_ni               tsmc035_typ    20 x      6    116 gates
 fake_gnd              tsmc035_typ     1 x      1      1 fake_gnd
-inv01                 tsmc035_typ   130 x      1     99 gates
-inv02                 tsmc035_typ   280 x      1    213 gates
-mux21                 tsmc035_typ    66 x      2    121 gates
-mux21_ni              tsmc035_typ   139 x      2    252 gates
-nand02                tsmc035_typ    71 x      1     71 gates
-nand02_2x             tsmc035_typ    41 x      1     41 gates
-nand03                tsmc035_typ     9 x      1     11 gates
-nand03_2x             tsmc035_typ     6 x      1      7 gates
-nand04                tsmc035_typ    13 x      1     19 gates
-nor02_2x              tsmc035_typ    60 x      1     60 gates
-nor02ii               tsmc035_typ   118 x      1    147 gates
-nor03_2x              tsmc035_typ    16 x      1     20 gates
-nor04                 tsmc035_typ     5 x      1      7 gates
-nor04_2x              tsmc035_typ     5 x      2     10 gates
-oai21                 tsmc035_typ    75 x      1     93 gates
-oai22                 tsmc035_typ    70 x      1    104 gates
-oai221                tsmc035_typ    18 x      2     36 gates
-oai222                tsmc035_typ    17 x      2     38 gates
-oai32                 tsmc035_typ    12 x      2     21 gates
-oai321                tsmc035_typ     2 x      2      4 gates
-oai33                 tsmc035_typ     8 x      2     16 gates
-oai332                tsmc035_typ     5 x      3     16 gates
-oai43                 tsmc035_typ     2 x      2      5 gates
-or02                  tsmc035_typ    21 x      1     26 gates
-or03                  tsmc035_typ     7 x      2     11 gates
+inv01                 tsmc035_typ   148 x      1    112 gates
+inv02                 tsmc035_typ   289 x      1    220 gates
+mux21                 tsmc035_typ    68 x      2    124 gates
+mux21_ni              tsmc035_typ   153 x      2    277 gates
+nand02                tsmc035_typ    87 x      1     87 gates
+nand02_2x             tsmc035_typ    30 x      1     30 gates
+nand03                tsmc035_typ    10 x      1     12 gates
+nand03_2x             tsmc035_typ     8 x      1     10 gates
+nand04                tsmc035_typ    14 x      1     21 gates
+nand04_2x             tsmc035_typ     2 x      2      4 gates
+nor02_2x              tsmc035_typ    57 x      1     57 gates
+nor02ii               tsmc035_typ    86 x      1    107 gates
+nor03_2x              tsmc035_typ    11 x      1     14 gates
+nor04                 tsmc035_typ     7 x      1     10 gates
+nor04_2x              tsmc035_typ     3 x      2      6 gates
+oai21                 tsmc035_typ    94 x      1    117 gates
+oai22                 tsmc035_typ    56 x      1     83 gates
+oai221                tsmc035_typ     3 x      2      6 gates
+oai222                tsmc035_typ    11 x      2     24 gates
+oai32                 tsmc035_typ    16 x      2     28 gates
+oai321                tsmc035_typ     6 x      2     13 gates
+oai322                tsmc035_typ     2 x      3      5 gates
+oai33                 tsmc035_typ     2 x      2      4 gates
+oai332                tsmc035_typ     7 x      3     22 gates
+oai422                tsmc035_typ     1 x      3      3 gates
+or02                  tsmc035_typ    20 x      1     25 gates
+or03                  tsmc035_typ     9 x      2     14 gates
 or04                  tsmc035_typ     2 x      2      4 gates
-xnor2                 tsmc035_typ    77 x      2    147 gates
-xor2                  tsmc035_typ    84 x      2    178 gates
+xnor2                 tsmc035_typ   106 x      2    202 gates
+xor2                  tsmc035_typ    83 x      2    176 gates
+xor2_2x               tsmc035_typ     1 x      2      2 gates
 
  Number of ports :                     257
- Number of nets :                     2265
- Number of instances :                1987
+ Number of nets :                     2363
+ Number of instances :                2073
  Number of references to this view :     0
 
 Total accumulated area : 
  Number of fake_gnd :                    2
- Number of gates :                   24097
- Number of accumulated instances :    9679
+ Number of gates :                   24347
+ Number of accumulated instances :    9765
