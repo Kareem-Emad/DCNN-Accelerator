@@ -355,7 +355,7 @@ begin
     class_cntr_max_val_in <= "1010";
     img_addr_offset_actual_reset <= img_addr_offset_reset or gen_reset;
 
-    comp_unit_relu <= '1' when max_num_channels_data_out = num_channels_out and IsConvLayer = '1' else '0';
+    comp_unit_relu <= '1' when num_channels_out = "00001" and IsConvLayer = '1' else '0';
 
 --FOR TESTING PURPOSES
     -- image_window: entity dcnn.ImageWindow
