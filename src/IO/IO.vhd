@@ -110,7 +110,7 @@ BEGIN
 	
 	ImgDecompU:	DecompressImage PORT MAP(clk, rst, dataIOIntrDecomp, decompCntrlImg, doneImgCntrl, wordImgCntrl, wordImgMux);
 
-	JsonDecompU:	JDecomp PORT MAP(clk, decompCntrlCNN, rst, dataIOIntrDecomp, doneCNNCntrl, wordCNNCntrl, wordCNNMux);
+	JsonDecompU:	JDecomp PORT MAP(clk, decompCntrlCNN, rst, dataIOIntrDecomp, wordCNNCntrl, doneCNNCntrl, wordCNNMux);
 	
 --	loop1:	FOR i IN 0 TO 15 GENERATE
 --			mux4X1U:	mux4X1 PORT MAP(wordImgMux(i), wordCNNMux(i), '0', '0', selDataMux(0), selDataMux(1), wordMemDecomp(i));
