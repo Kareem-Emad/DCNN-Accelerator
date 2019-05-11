@@ -8,8 +8,8 @@ package config is
     constant n_dword : natural := 32;
     constant adder_id : natural := 0;
     constant comparator_id : natural := 1;
-    constant image_exp : integer := 0;
-    constant filter_exp : integer := 0;
+    constant image_exp : integer := 8;
+    constant filter_exp : integer := 8;
 
     subtype filtersize_t is std_logic;
     constant filter5x5 : std_logic := '0';

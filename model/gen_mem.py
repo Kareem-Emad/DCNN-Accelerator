@@ -3,7 +3,7 @@ import numpy as np
 from scipy import signal
 
 IM_SIZE = 28
-EXPONENT = 0
+EXPONENT = 8
 
 np.random.seed(1)
 np.set_printoptions(precision=3, suppress=True)
@@ -38,17 +38,17 @@ def create_memory():
     # img = np.random.randn(IMSIZE, IMSIZE)
     # img = 9 * np.ones((IMSIZE, IMSIZE))
     img = np.arange(0, IM_SIZE * IM_SIZE, 1)
-    img = np.random.randint(0, high=10, size=IM_SIZE * IM_SIZE)
+    img = np.random.randint(0, high=256, size=IM_SIZE * IM_SIZE)
     img2d = np.reshape(img, (IM_SIZE, IM_SIZE))
     for i in range(IM_SIZE):
         for j in range(IM_SIZE):
             print(img2d[i][j], end=" ")
         print("\n")
-    nlayers = 1
+    nlayers = 2
     # 0 = convolution, 1 = average pooling, 2 = FC
     layer_types = np.array([0, 0, 2])
     flt_nfilters = np.array([2, 1, 3])
-    flt_sizes = np.array([3, 5, 5])
+    flt_sizes = np.array([5, 5, 5])
     layer_dims = [IM_SIZE]
     for i in range(1, nlayers + 1):
         if layer_types[i - 1] == 2:
@@ -59,6 +59,7 @@ def create_memory():
             new_layer_size = layer_dims[i - 1] - 2
         layer_dims.append(new_layer_size)
     mem = np.append(np.array([]), nlayers)
+    finals = np.zeros(10)
     curr_img = np.zeros((10, IM_SIZE, IM_SIZE))
     curr_img[0, :, :] = img2d[:, :]
     for i in range(nlayers):
@@ -99,19 +100,22 @@ def create_memory():
                 for ch in range(n_in_channels):
                     # flt2d = np.random.randint(0, 20, size=flt_sizes[i] * flt_sizes[i])
                     # flt2d = np.arange(flt_sizes[i] * flt_sizes[i]) * 2
-                    raw_flt2d = np.random.randint(-3, 4, size=flt_sizes[i] * flt_sizes[i])
+                    raw_flt2d = np.random.randint(-50, 50, size=flt_sizes[i] * flt_sizes[i])
                     flt2d = np.flip(np.reshape(raw_flt2d, (flt_sizes[i], flt_sizes[i])), axis=0)
                     flt1d = np.reshape(flt2d, -1)
                     conv_inp = inp_image_to_layer[ch, :layer_dims[i], :layer_dims[i]]
-                    conv_outp += (signal.convolve(conv_inp, np.flip(flt2d, axis=1), mode='valid')) / (2**EXPONENT)
+                    conv_outp += np.array((signal.convolve(conv_inp, np.flip(flt2d, axis=1), mode='valid')) / (2**EXPONENT), dtype=int)
                     print(conv_outp.shape)
                     print("Channel %d of Filter %d of layer %d: " % (ch, j, i), "\n", flt2d)
                     print("Convolution Input for this channel: \n", conv_inp)
                     print("Convolution Output for this channel: \n", conv_outp)
                     mem = np.append(mem, flt1d)
+                if layer_types[i] == 2:
+                    finals[j] = conv_outp
                 print("******* THAT WAS THE FINAL OUTPUT OF THIS FILTER ************\n")
                 curr_img[j, :outp_width, :outp_height] = conv_outp[:, :]
             print("\n")
+    print("Final class scores: \n", finals)
     data_addr = mem.size
     # mem = np.append(mem, img)
     # outp_addr = mem.size - img.size
