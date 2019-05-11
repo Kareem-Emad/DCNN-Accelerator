@@ -253,6 +253,7 @@ BEGIN
 
 			WHEN s_waitRL =>
 				o_address <= x"FFFF";
+				o_process <= '1';
 
 				o_ready <= '0';
 				o_loadDecompImg <= '0';
@@ -260,7 +261,6 @@ BEGIN
 				o_writeMem <= '0';
 				enAddCntrImg <= '0';
 				enAddCntrCNN <= '0';
-				o_process <= '0';
 				o_done <= '0';
 				o_readMem <= '0';
 
