@@ -6,8 +6,8 @@ use dcnn.config.all;
 
 entity AdditionLayer is
     port(
-        d_arr : out wordarr_t(0 to 24) := (others => (others => '0'));
-        q_arr : in wordarr_t(0 to 24) := (others => (others => '0'))
+        d_arr : out dwordarr_t(0 to 24) := (others => (others => '0'));
+        q_arr : in dwordarr_t(0 to 24) := (others => (others => '0'))
     );
 end AdditionLayer;
 

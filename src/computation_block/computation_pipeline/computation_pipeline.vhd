@@ -9,8 +9,8 @@ entity ComputationPipeline is
     port(
         img_data : in wordarr_t(0 to 24) := (others => (others => '0'));
         filter_data : in wordarr_t(0 to 24) := (others => (others => '0'));
-        d_arr : out wordarr_t(0 to 24) := (others => (others => '0'));
-        q_arr : in wordarr_t(0 to 24) := (others => (others => '0'));
+        d_arr : out dwordarr_t(0 to 24) := (others => (others => '0'));
+        q_arr : in dwordarr_t(0 to 24) := (others => (others => '0'));
         output1_init : in word_t := (others => '0');
         output2_init : in word_t := (others => '0');
         filter_size : in filtersize_t := filter5x5;
@@ -38,20 +38,25 @@ architecture Behavioral of ComputationPipeline is
     constant n_states : natural := 17;
 
     signal counter : unsigned(n_states-1 downto 0);
-    signal ordered_filter_data : wordarr_t(0 to 24);
-    signal ordered_img_data : wordarr_t(0 to 24);
-    signal d_arr_mux : wordarr_t(0 to 24);
-    signal d_arr_mul : wordarr_t(0 to 24);
-    signal d_arr_add : wordarr_t(0 to 24);
-    signal d_arr_merge1 : wordarr_t(0 to 24);
-    signal d_arr_merge2 : wordarr_t(0 to 24);
-    signal d_arr_relu : wordarr_t(0 to 24);
+    signal ordered_filter_data : dwordarr_t(0 to 24);
+    signal ordered_img_data : dwordarr_t(0 to 24);
+    signal d_arr_mux : dwordarr_t(0 to 24);
+    signal d_arr_mul : dwordarr_t(0 to 24);
+    signal d_arr_add : dwordarr_t(0 to 24);
+    signal d_arr_merge1 : dwordarr_t(0 to 24);
+    signal d_arr_merge2 : dwordarr_t(0 to 24);
+    signal d_arr_relu : dwordarr_t(0 to 24);
     signal sel_mux : std_logic;
     signal sel_mul : std_logic;
     signal sel_add : std_logic;
     signal sel_merge1 : std_logic;
     signal sel_merge2 : std_logic;
     signal sel_relu : std_logic;
+
+    signal img_data_se : dwordarr_t(0 to 24);
+    signal filter_data_se : dwordarr_t(0 to 24);
+    signal output1_init_se : dword_t;
+    signal output2_init_se : dword_t;
 begin
     process(clk, en, reset)
     begin
@@ -71,6 +76,18 @@ begin
             end if;
         end if;
     end process;
+
+    se_gen: for i in 0 to 24 generate
+        img_data_se(i)(n_dword-1 downto n_word) <= (others => img_data(i)(n_word - 1));
+        img_data_se(i)(n_word-1 downto 0) <= img_data(i);
+        filter_data_se(i)(n_dword-1 downto n_word) <= (others => filter_data(i)(n_word - 1));
+        filter_data_se(i)(n_word-1 downto 0) <= filter_data(i);
+    end generate;
+    output1_init_se(n_dword-1 downto n_word) <= (others => output1_init(n_word - 1));
+    output1_init_se(n_word-1 downto 0) <= output1_init;
+    output2_init_se(n_dword-1 downto n_word) <= (others => output2_init(n_word - 1));
+    output2_init_se(n_word-1 downto 0) <= output2_init;
+        
     
     sel_mux <= counter(0);
     sel_mul <= counter(1) or counter(2) or counter(3) or
@@ -104,8 +121,8 @@ begin
 
     mux_layer_gen : entity dcnn.MuxLayer
         port map(
-            img_data => img_data,
-            filter_data => filter_data,
+            img_data => img_data_se,
+            filter_data => filter_data_se,
             filter_size => filter_size,
             ordered_img_data => ordered_img_data,
             ordered_filter_data => ordered_filter_data
@@ -139,8 +156,8 @@ begin
         port map(
             d_arr => d_arr_merge2,
             q_arr => q_arr,
-            output1_init => output1_init,
-            output2_init => output2_init
+            output1_init => output1_init_se,
+            output2_init => output2_init_se
         );
 
     relu_layer_gen : entity dcnn.ReluLayer

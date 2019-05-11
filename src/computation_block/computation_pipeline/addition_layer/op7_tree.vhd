@@ -11,15 +11,15 @@ use dcnn.config.all;
 
 entity Op7Tree is
     port(
-        d_arr : out wordarr_t(0 to 6);
-        q_arr : in wordarr_t(0 to 6)
+        d_arr : out dwordarr_t(0 to 6);
+        q_arr : in dwordarr_t(0 to 6)
     );
 end Op7Tree;
 
 architecture Structural of Op7Tree is
-    signal a_arr : wordarr_t(0 to 2);
-    signal b_arr : wordarr_t(0 to 2);
-    signal s_arr : wordarr_t(0 to 2);
+    signal a_arr : dwordarr_t(0 to 2);
+    signal b_arr : dwordarr_t(0 to 2);
+    signal s_arr : dwordarr_t(0 to 2);
 begin
     router_gen: entity dcnn.Op7Router 
         port map(
@@ -28,7 +28,7 @@ begin
         );
     gen_loop: for i in 0 to 2 generate
         adder_gen: entity dcnn.NAdder
-            -- generic map(n_word)
+            generic map(n_dword)
             port map(
                 a_arr(i), b_arr(i), '0',
                 s_arr(i)

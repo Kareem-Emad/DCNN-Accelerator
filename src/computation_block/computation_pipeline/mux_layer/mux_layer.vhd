@@ -6,11 +6,11 @@ use dcnn.config.all;
 
 entity MuxLayer is
     port(
-        img_data : in wordarr_t(0 to 24) := (others => (others => '0'));
-        filter_data : in wordarr_t(0 to 24) := (others => (others => '0'));
+        img_data : in dwordarr_t(0 to 24) := (others => (others => '0'));
+        filter_data : in dwordarr_t(0 to 24) := (others => (others => '0'));
         filter_size : in filtersize_t := filter5x5;
-        ordered_img_data : out wordarr_t(0 to 24) := (others => (others => '0'));
-        ordered_filter_data : out wordarr_t(0 to 24) := (others => (others => '0'))
+        ordered_img_data : out dwordarr_t(0 to 24) := (others => (others => '0'));
+        ordered_filter_data : out dwordarr_t(0 to 24) := (others => (others => '0'))
     );
 end MuxLayer;
 

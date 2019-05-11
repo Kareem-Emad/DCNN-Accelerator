@@ -42,8 +42,8 @@ end ComputationBlock;
 architecture Structural of ComputationBlock is          
     signal img_data : wordarr_t(0 to 24);
     signal filter_data : wordarr_t(0 to 24);
-    signal d_cache_arr : wordarr_t(0 to 24) := (others => (others => '0'));
-    signal q_cache_arr : wordarr_t(0 to 24) := (others => (others => '0'));
+    signal d_cache_arr : dwordarr_t(0 to 24) := (others => (others => '0'));
+    signal q_cache_arr : dwordarr_t(0 to 24) := (others => (others => '0'));
     signal comp_cache_ld : std_logic := '1';
     signal comp_cache_rst : std_logic := '0';
     
@@ -97,8 +97,8 @@ begin
             output2_q <= (others => '0');
         elsif rising_edge(clk) then
             if semi_ready = '1' then
-                output1_q <= q_cache_arr(0);
-                output2_q <= q_cache_arr(1);
+                output1_q <= q_cache_arr(0)(n_word-1 downto 0);
+                output2_q <= q_cache_arr(1)(n_word-1 downto 0);
             end if;
         end if;
     end process;

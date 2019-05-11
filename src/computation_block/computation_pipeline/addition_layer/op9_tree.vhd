@@ -11,15 +11,15 @@ use dcnn.config.all;
 
 entity Op9Tree is
     port(
-        d_arr : out wordarr_t(0 to 8);
-        q_arr : in wordarr_t(0 to 8)
+        d_arr : out dwordarr_t(0 to 8);
+        q_arr : in dwordarr_t(0 to 8)
     );
 end Op9Tree;
 
 architecture Structural of Op9Tree is
-    signal a_arr : wordarr_t(0 to 3);
-    signal b_arr : wordarr_t(0 to 3);    
-    signal s_arr : wordarr_t(0 to 3);
+    signal a_arr : dwordarr_t(0 to 3);
+    signal b_arr : dwordarr_t(0 to 3);    
+    signal s_arr : dwordarr_t(0 to 3);
 begin
     router_gen: entity dcnn.Op9Router 
         port map(
@@ -29,7 +29,7 @@ begin
 
     gen_loop: for i in 0 to 3 generate
         adder_gen: entity dcnn.NAdder
-            -- generic map(n_word)
+            generic map(n_dword)
             port map(
                 a_arr(i), b_arr(i), '0',
                 s_arr(i)

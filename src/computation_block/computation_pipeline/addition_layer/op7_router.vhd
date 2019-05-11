@@ -17,11 +17,11 @@ use dcnn.config.all;
 
 entity Op7Router is
     port(
-        d_arr : out wordarr_t(0 to 6);   -- input to operand registers
-        q_arr : in wordarr_t(0 to 6);    -- output of operand registers
-        a_arr : out wordarr_t(0 to 2);   -- first operand input to the 4 operators
-        b_arr : out wordarr_t(0 to 2);   -- second operand input to the 4 operators
-        s_arr : in wordarr_t(0 to 2)    -- result of the operators
+        d_arr : out dwordarr_t(0 to 6);   -- input to operand registers
+        q_arr : in dwordarr_t(0 to 6);    -- output of operand registers
+        a_arr : out dwordarr_t(0 to 2);   -- first operand input to the 4 operators
+        b_arr : out dwordarr_t(0 to 2);   -- second operand input to the 4 operators
+        s_arr : in dwordarr_t(0 to 2)    -- result of the operators
     );
 end Op7Router;
 
