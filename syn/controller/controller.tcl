@@ -34,3 +34,5 @@ set novendor_constraint_file FALSE
 auto_write -format VHDL controller_syn.vhd
 set novendor_constraint_file FALSE
 auto_write -format SDF controller_syn.sdf
+auto_write -format Verilog controller_syn.v
+auto_write -format SDF controller_syn.sdf
