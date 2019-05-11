@@ -138,7 +138,11 @@ def create_memory():
             if layer_types[i] == 2:
                 finals[j] = conv_outp
             print("******* THAT WAS THE FINAL OUTPUT OF THIS FILTER ************\n")
-            if layer_types[i] != 1:
+            if layer_types[i] == 0:
+                curr_img[j, :outp_width, :outp_height] = conv_outp[:, :] * (conv_outp[:, :] >= 0)
+                print("Final channel convolution output: \n",
+                      curr_img[j, :outp_width, :outp_height])
+            elif layer_types[i] == 2:
                 curr_img[j, :outp_width, :outp_height] = conv_outp[:, :]
             print("\n")
     print("Final class scores: \n", finals)

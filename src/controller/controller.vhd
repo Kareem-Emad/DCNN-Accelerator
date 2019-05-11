@@ -355,6 +355,8 @@ begin
     class_cntr_max_val_in <= "1010";
     img_addr_offset_actual_reset <= img_addr_offset_reset or gen_reset;
 
+    comp_unit_relu <= '1' when max_num_channels_data_out = num_channels_out and IsConvLayer = '1' else '0';
+
 --FOR TESTING PURPOSES
     -- image_window: entity dcnn.ImageWindow
     -- port map (
@@ -437,7 +439,7 @@ begin
     generic map (N => 5)
     port map (
         clk => clk, reset => gen_reset, load => max_num_channels_load,
-        d => max_num_channels_data_in, q => max_num_channels_data_out, rst_data => "00000"
+        d => max_num_channels_data_in, q => max_num_channels_data_out, rst_data => "00001"
     );
 
  
@@ -788,7 +790,6 @@ begin
         channel_zero_load <= '0';
         channel_zero_data_load <= '0';
         -- Outputs
-        comp_unit_relu <= '0';
         comp_unit_data1_out <= (others => '0');
         comp_unit_data2_out <= (others => '0');
         write_mem_to_fltr <= '0';
@@ -1059,8 +1060,6 @@ begin
                     bias_offset_data_in <= std_logic_vector(unsigned(write_offset_data_out) +1);
                 end if;
                 comp_unit_data1_out <= bias1;
-                -- TODO: get ReLU to work.
-                -- comp_unit_relu <= num_channels_max_reached;
                 if filter_tbt = '1' then
                     next_state <= start_convolution_2;
                 else
@@ -1082,7 +1081,6 @@ begin
                 end if;
                 comp_unit_data2_out <= bias2;
                 comp_unit_ready <= '1';
-                -- comp_unit_relu <= num_channels_max_reached;
                 next_state <= waiting_on_computation;
                 wind_width_count_rst <= '0';
             when waiting_on_computation =>
