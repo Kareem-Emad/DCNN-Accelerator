@@ -15,7 +15,7 @@ End Entity;
 
 Architecture myArch of JDecomp is
 
-component DefCounter is 
+component counter is 
         
        port(Clock, CLR ,ldEn: in  std_logic;
 	cValue : in std_logic_vector(6 downto 0);
@@ -44,13 +44,13 @@ end component;
 
 signal dnCount : std_logic_vector (6 downto 0);
 signal upCount : std_logic_vector (3 downto 0);
-signal LorR : std_logic   ;
+signal LorR,R : std_logic   ;
 signal v : std_logic ;
 signal countVal : std_logic_vector (6 downto 0) ;
 signal rstUpC,packDone,wdDone : std_logic ;
 signal finUpCRst: std_logic;
 signal decPacket : std_logic_vector(15 downto 0);
-signal bgn,bgnSec,loadEn,upCEn,shRegEn,delayedPacket : std_logic ;
+signal bgn,bgnSec,loadEn,upCEn,shRegEn,delayedPacket,delayedWord,leaveMyWord : std_logic ;
 begin
 
 process(clk,en,dnCount,upCount)
@@ -72,6 +72,9 @@ if(rising_edge(clk)) then
 		upCEn <= '0';
 		shRegEn <= '0';
 		delayedPacket <= '0';
+		delayedWord <= '0';
+		R <= '1';
+		leaveMyWord <= '0';
 	else
 
 	if ( en ='1') then
@@ -83,12 +86,35 @@ if(rising_edge(clk)) then
 		packDone <= '0';
 		rstUpC <= '0';
 	else
+		
 			if (bgn = '1' and LorR = '0') then 
 				upCEn <= '1';
 				shRegEn <= '1';
 			end if;
 
-			
+			if((delayedWord = '1') ) then
+				if(LorR = '1') then 
+					if(R = '0') then
+						wdDone <= '1';
+						delayedWord <= '0';
+						leaveMyWord <= '1';
+						if(packDone = '1') then
+							packDone <= '0';
+						end if;
+
+					end if;
+				else
+					if(R = '1') then
+						wdDone <= '1';
+						delayedWord <= '0';
+						leaveMyWord <= '1'; 
+						if(packDone = '1') then
+							packDone <= '0';
+						end if;
+					end if;
+				end if;
+			end if;
+				
 			if (delayedPacket = '1') then
 				packDone <= '1';
 				delayedPacket <= '0';
@@ -111,8 +137,25 @@ if(rising_edge(clk)) then
 			end if;
 			
 			if(upCount = "1111") then
-				wdDone <= '1';
+				if(dnCount = "0000000") then
+					delayedWord <= '1';
+					R <= LorR;
+
+
+				elsif( delayedWord = '0') then
 				
+					wdDone <= '1';
+				end if;
+				
+			elsif( leaveMyWord = '1') then
+				--leaveMyWord <= '0';		
+				if(packDone = '0') then 
+					leaveMyWord <= '0';
+					wdDone <= '1';
+				else
+					wdDone <= '0';
+					--wdDone <= '1';
+				end if;
 			else
 				wdDone <= '0';
 				
@@ -146,7 +189,7 @@ if(rising_edge(clk)) then
 end if;
 end process;
 	finUpCRst <= rst or rstUpC;
-	DC : DefCounter port map (clk,rst,loadEn,countVal,dnCount);
+	DC : counter port map (clk,rst,loadEn,countVal,dnCount);
 	UC : fBitUpCounter port map (upCEn,clk,finUpCRst,upCount);
 	shR : shiftReg port map (shRegEn,v,clk,rst,decPacket);
 	packetdone <= packDone;
