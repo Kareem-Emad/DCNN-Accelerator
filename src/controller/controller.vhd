@@ -680,7 +680,7 @@ begin
     comp_ns : process(current_state, io_ready_in,
     addr1_data, mem_data_in,
     layer_type_out, IsConvLayer, IsPoolLayer,
-    IsFCLayer, channel_zero_out, flt_bias_out, write_offset_data_out,
+    IsFCLayer, channel_zero_out, flt_bias_out, write_offset_data_out, write_base_prev_data_out,
     write_base_data_out, bias_offset_data_out, bias1, bias2,
     bias1_data_out, comp_unit_data1_in, comp_unit_data2_in, comp_unit_finished, new_size_squared_out,
     nlayers_max_reached, num_channels_max_reached,
@@ -1328,7 +1328,8 @@ begin
                     next_state <= argmax_computation;
                 end if;
             when write_classification =>
-                mem_addr_out <= std_logic_vector(unsigned(class_cntr_counter_out) + unsigned(write_base_data_out));
+                -- Write the classification to the last place in memory.
+                mem_addr_out <= (others => '1'); --std_logic_vector(unsigned(class_cntr_counter_out) + unsigned(write_base_data_out));
                 mem_data_out <= argmax_data_in;
                 mem_write <= '1';
                 next_state <= end_state;
