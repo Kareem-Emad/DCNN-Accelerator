@@ -1,0 +1,440 @@
+DCNNChip 1000
+bad_active_area
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Active area must be covered by a select
+bad_contact_poly
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to poly must consist of poly, CONTACT_TO_POLY, and METAL1
+bad_contact_ELECTRODE
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to ELECTRODE must consist of ELECTRODE, CONTACT_TO_ELECTRODE, and METAL1
+bad_contact_active
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to active must consist of active, CONTACT_TO_ACTIVE, and METAL1
+bad_contact_gate
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to poly may not be on gate region.
+bad_via
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via must consist of METAL1, via, and METAL2
+bad_via2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via2 must consist of METAL2, via2, and METAL3
+bad_via3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via3 must consist of METAL3, via3, and METAL4
+select_overlap
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Overlap of N+ and P+ not allowed
+bad_nwell
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Nwell must have well contact
+bad_psubstrate
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Psubstrate must have a substrate contact
+bad_pgate
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+P-type gate must not be in psubstrate
+bad_ngate
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+N-type gate must not be in nwell
+bad_port
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Port must be completely covered with Metal
+DRC1_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+N-Well width = 12L
+DRC1_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+N-well spacing (different potential) = 18L
+DRC2_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Active area width = 3L
+DRC2_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Active area spacing = 3L
+DRC2_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Source/Drain Active to Well Edge = 6L
+DRC2_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Substrate/Well Contact, Active to Well Edge = 3L
+DRC3_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Poly width = 2L
+DRC3_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Poly spacing = 3L
+DRC3_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Gate poly overlap of active = 2L
+DRC3_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Active overlap of gate poly = 3L
+DRC3_5
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Field poly to active = 1L
+DRC4.1p
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.1n
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.2
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.3p
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.3n
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.4pw
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.4ps
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.4nw
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.4ns
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC4.4np
+0 0 1 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+DRC5_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to poly size exactly 2L X 2L
+DRC5_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Poly overlap for contact = 1.5L
+DRC5_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to poly spacing = 3L
+DRC5_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to active space to gate of transistor = 2L
+DRC6_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to active exactly 2L X 2L
+DRC6_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Active overlap for contact = 1.5L
+DRC6_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to active spacing = 3L
+DRC6_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to active space to gate of transistor = 2L
+DRC7_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal1 width = 3L
+DRC7_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal1 spacing = 3L
+DRC7_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal1 overlap of contact to poly or contact to active = 1L
+DRC7_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal1 spacing = 6L if width > 10L
+DRC8_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via size exactly 2L X 2L
+DRC8_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via spacing = 3L
+DRC8_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via overlap by METAL1 = 1L
+DRC9_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal2 width = 3L
+DRC9_2
+5 5 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal2 spacing = 3L
+e 1 2
+CN DCNNChip c 1 0 0 1 0 0 0
+420000 613000 420500 613000
+420000 615500 420500 615500
+e 2 2
+423500 613000 424000 613000
+423500 615500 424000 615500
+e 3 2
+802000 598000 802000 602000
+804500 598000 804500 602000
+e 4 2
+840000 912500 840500 912500
+840000 915000 840500 915000
+e 5 2
+843500 912500 844000 912500
+843500 915000 844000 915000
+DRC9_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal2 overlap of via = 1L
+DRC9_4
+4 4 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal2 spacing = 6L if width > 10L
+e 1 2
+CN DCNNChip c 1 0 0 1 0 0 0
+99000 162000 99000 907196
+102000 156804 102000 902000
+e 2 2
+1062000 156804 1062000 902000
+1065000 162000 1065000 907196
+e 3 2
+CN DCNNChip c 1 0 0 1 0 0 0
+152000 118683 152000 129317
+157000 122000 157000 126000
+e 4 2
+1007000 282000 1007000 286000
+1012000 278683 1012000 289317
+DRC11_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE width = 7L ON CAP
+DRC11_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE spacing = 3L ON CAP
+DRC11_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Poly overlap of ELECTRODE = 5L
+DRC11_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE spacing to active or well = 2L
+DRC11_5
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE spacing to Contact to Poly = 6L
+DRC11_sel
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Capacitor and Select may not intersect
+DRC12_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE width = 2L
+DRC12_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE spacing = 3L
+DRC13_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to ELECTRODE size exactly 2L X 2L
+DRC13_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to ELECTRODE spacing = 3L
+DRC13_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE overlap for contact = 3L ON CAP PLATE
+DRC13_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+ELECTRODE overlap for contact = 2L NOT ON CAP PLATE
+DRC13_5
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Contact to ELECTRODE space to Poly or Active = 3L
+DRC14_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via2 size exactly 2L X 2L
+DRC14_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via2 spacing = 3L
+DRC14_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via2 overlap by METAL2 = 1L
+DRC15_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal3 width = 3L
+DRC15_2
+4 4 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal3 spacing = 3L
+e 1 2
+CN DCNNChip c 1 0 0 1 0 0 0
+420000 613000 424000 613000
+420000 615500 424000 615500
+e 2 2
+802000 598000 802000 598500
+804500 598000 804500 598500
+e 3 2
+802000 601500 802000 602000
+804500 601500 804500 602000
+e 4 2
+840000 912500 844000 912500
+840000 915000 844000 915000
+DRC15_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal3 overlap of via2 = 1L
+DRC15_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal3 spacing = 6L if width > 10L
+DRC21_1
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via3 size exactly 2L X 2L
+DRC21_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via3 spacing = 3L
+DRC21_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Via3 overlap by METAL3 = 1L
+DRC22_1
+27 27 2 May 12 05:31:07 2019                   
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal4 width = 6L
+e 1 2
+CN DCNNChip c 1 0 0 1 0 0 0
+577000 0 583000 0
+577000 4000 583000 4000
+e 2 2
+577000 1040000 583000 1040000
+577000 1044000 583000 1044000
+e 3 2
+593000 0 599000 0
+593000 4000 599000 4000
+e 4 2
+593000 1040000 599000 1040000
+593000 1044000 599000 1044000
+e 5 2
+609000 0 615000 0
+609000 4000 615000 4000
+e 6 2
+609000 1040000 615000 1040000
+609000 1044000 615000 1044000
+e 7 2
+625000 0 631000 0
+625000 4000 631000 4000
+e 8 2
+625000 1040000 631000 1040000
+625000 1044000 631000 1044000
+e 9 2
+641000 0 647000 0
+641000 4000 647000 4000
+e 10 2
+641000 1040000 647000 1040000
+641000 1044000 647000 1044000
+e 11 2
+657000 0 663000 0
+657000 4000 663000 4000
+e 12 2
+657000 1040000 663000 1040000
+657000 1044000 663000 1044000
+e 13 2
+673000 0 679000 0
+673000 4000 679000 4000
+e 14 2
+673000 1040000 679000 1040000
+673000 1044000 679000 1044000
+e 15 2
+689000 0 695000 0
+689000 4000 695000 4000
+e 16 2
+689000 1040000 695000 1040000
+689000 1044000 695000 1044000
+e 17 2
+705000 0 711000 0
+705000 4000 711000 4000
+e 18 2
+705000 1040000 711000 1040000
+705000 1044000 711000 1044000
+e 19 2
+721000 0 727000 0
+721000 4000 727000 4000
+e 20 2
+721000 1040000 727000 1040000
+721000 1044000 727000 1044000
+e 21 2
+737000 0 743000 0
+737000 4000 743000 4000
+e 22 2
+737000 1040000 743000 1040000
+737000 1044000 743000 1044000
+e 23 2
+753000 0 759000 0
+753000 4000 759000 4000
+e 24 2
+753000 1040000 759000 1040000
+753000 1044000 759000 1044000
+e 25 2
+769000 0 775000 0
+769000 4000 775000 4000
+e 26 2
+769000 1040000 775000 1040000
+769000 1044000 775000 1044000
+e 27 2
+785000 1040000 791000 1040000
+785000 1044000 791000 1044000
+DRC22_2
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal4 spacing = 6L
+DRC22_3
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal4 overlap of via3 = 2L
+DRC22_4
+0 0 2 May 12 05:31:07 2019                     
+Rule File Pathname: /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Metal4 spacing = 12L if width > 10L

@@ -1,0 +1,28 @@
+
+
+==================================================================================
+=== CALIBRE::LVS-H SUMMARY REPORT
+===
+
+Extraction Summary
+------------------
+Extraction Start Time:                       Sun May 12 08:26:15 2019
+Extraction Finish Time:                      Sun May 12 08:26:15 2019
+Circuit Extraction Report:                   DCNNChip.lvs.report.ext
+Circuit Extraction SPICE Netlist:            /home/ayman/Programming/DCNN-Accelerator/layout/DCNNChip.sp
+
+Comparison Summary
+------------------
+Comparison Start Time:                       Sun May 12 08:26:15 2019
+Comparison Finish Time:                      Sun May 12 08:26:15 2019
+LVS Comparison Report:                       DCNNChip.lvs.report
+LVS Comparison Status:                       CORRECT.
+
+                            #                _   _     
+                           #                 *   *     
+                      #   #                    |       
+                       # #                   \___/     
+                        #                              
+
+Comparison Warning Types Detected:           2
+

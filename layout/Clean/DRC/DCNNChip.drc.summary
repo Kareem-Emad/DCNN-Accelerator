@@ -1,0 +1,163 @@
+
+
+==================================================================================
+=== CALIBRE::DRC-H SUMMARY REPORT
+===
+Execution Date/Time:       Sun May 12 05:31:07 2019
+Calibre Version:           v2019.1_18.11    Thu Jan 10 13:52:51 PST 2019
+Rule File Pathname:        /home/ayman/Programming/DCNN-Accelerator/layout/_tsmc035.rules_
+Rule File Title:           
+Layout System:             GDS
+Layout Path(s):            /home/ayman/Programming/DCNN-Accelerator/layout/dcnn_chip.gds
+Layout Primary Cell:       DCNNChip
+Current Directory:         /home/ayman/Programming/DCNN-Accelerator/layout
+User Name:                 ayman
+Maximum Results/RuleCheck: 1000
+Maximum Result Vertices:   4096
+DRC Results Database:      DCNNChip.drc.results (ASCII)
+Layout Depth:              ALL
+Text Depth:                PRIMARY
+Summary Report File:       DCNNChip.drc.summary (REPLACE)
+Geometry Flagging:         ACUTE = NO  SKEW = NO  ANGLED = NO  OFFGRID = NO
+                           NONSIMPLE POLYGON = NO  NONSIMPLE PATH = NO
+Excluded Cells:           
+CheckText Mapping:         COMMENT TEXT + RULE FILE INFORMATION
+Layers:                    MEMORY-BASED
+Keep Empty Checks:         YES
+----------------------------------------------------------------------------------
+--- RUNTIME WARNINGS
+---
+Path endsegment length 1 at location (9,60) in cell inv01 on layer 49 datatype 0 is less than 1/2 of path width 3.
+Path endsegment length 0.5 at location (9,65.5) in cell oai21 on layer 49 datatype 0 is less than 1/2 of path width 3.
+Path endsegment length 0.5 at location (12,61) in cell xnor2_2x on layer 49 datatype 0 is less than 1/2 of path width 3.
+Path endsegment length 0.5 at location (29,40) in cell aoi44 on layer 46 datatype 0 is less than 1/2 of path width 2.
+Path endsegment length 0.5 at location (12,61) in cell xor2_2x on layer 49 datatype 0 is less than 1/2 of path width 3.
+Path endsegment length 0.5 at location (39,38) in cell aoi221 on layer 46 datatype 0 is less than 1/2 of path width 2.
+----------------------------------------------------------------------------------
+--- ORIGINAL LAYER STATISTICS
+---
+LAYER N_WELL ................. TOTAL Original Geometry Count = 23  (463)
+LAYER POLY ................... TOTAL Original Geometry Count = 221 (3637)
+LAYER ACTIVE ................. TOTAL Original Geometry Count = 32  (868)
+LAYER P_PLUS_SELECT .......... TOTAL Original Geometry Count = 13  (303)
+LAYER N_PLUS_SELECT .......... TOTAL Original Geometry Count = 13  (303)
+LAYER DIFFUSED_RESISTOR ...... TOTAL Original Geometry Count = 0   (0)
+LAYER CONTACT_TO_ACTIVE ...... TOTAL Original Geometry Count = 134 (1884)
+LAYER HI_RES_IMPLANT ......... TOTAL Original Geometry Count = 0   (0)
+LAYER ELECTRODE .............. TOTAL Original Geometry Count = 0   (0)
+LAYER METAL1 ................. TOTAL Original Geometry Count = 335 (2777)
+LAYER CONTACT_TO_POLY ........ TOTAL Original Geometry Count = 21  (416)
+LAYER CONTACT ................ TOTAL Original Geometry Count = 0   (0)
+LAYER PADS ................... TOTAL Original Geometry Count = 0   (0)
+LAYER VIA .................... TOTAL Original Geometry Count = 1   (444)
+LAYER METAL2 ................. TOTAL Original Geometry Count = 280 (1265)
+LAYER CONTACT_TO_ELECTRODE ... TOTAL Original Geometry Count = 0   (0)
+LAYER VIA2 ................... TOTAL Original Geometry Count = 1   (265)
+LAYER METAL3 ................. TOTAL Original Geometry Count = 175 (469)
+LAYER VIA3 ................... TOTAL Original Geometry Count = 1   (31)
+LAYER METAL4 ................. TOTAL Original Geometry Count = 45  (75)
+LAYER METAL1.PORT ............ TOTAL Original Geometry Count = 0   (0)
+LAYER METAL2.PORT ............ TOTAL Original Geometry Count = 0   (0)
+LAYER METAL3.PORT ............ TOTAL Original Geometry Count = 0   (0)
+LAYER OVERGLASS .............. TOTAL Original Geometry Count = 0   (0)
+LAYER METAL4.PORT ............ TOTAL Original Geometry Count = 0   (0)
+----------------------------------------------------------------------------------
+--- RULECHECK RESULTS STATISTICS
+---
+RULECHECK bad_active_area ......... TOTAL Result Count = 0  (0)
+RULECHECK bad_contact_poly ........ TOTAL Result Count = 0  (0)
+RULECHECK bad_contact_ELECTRODE ... TOTAL Result Count = 0  (0)
+RULECHECK bad_contact_active ...... TOTAL Result Count = 0  (0)
+RULECHECK bad_contact_gate ........ TOTAL Result Count = 0  (0)
+RULECHECK bad_via ................. TOTAL Result Count = 0  (0)
+RULECHECK bad_via2 ................ TOTAL Result Count = 0  (0)
+RULECHECK bad_via3 ................ TOTAL Result Count = 0  (0)
+RULECHECK select_overlap .......... TOTAL Result Count = 0  (0)
+RULECHECK bad_nwell ............... TOTAL Result Count = 0  (0)
+RULECHECK bad_psubstrate .......... TOTAL Result Count = 0  (0)
+RULECHECK bad_pgate ............... TOTAL Result Count = 0  (0)
+RULECHECK bad_ngate ............... TOTAL Result Count = 0  (0)
+RULECHECK bad_port ................ TOTAL Result Count = 0  (0)
+RULECHECK DRC1_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC1_2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC2_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC2_2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC2_3 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC2_4 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC3_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC3_2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC3_3 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC3_4 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC3_5 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC4.1p ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC4.1n ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC4.2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC4.3p ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC4.3n ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC4.4pw ................ TOTAL Result Count = 0  (0)
+RULECHECK DRC4.4ps ................ TOTAL Result Count = 0  (0)
+RULECHECK DRC4.4nw ................ TOTAL Result Count = 0  (0)
+RULECHECK DRC4.4ns ................ TOTAL Result Count = 0  (0)
+RULECHECK DRC4.4np ................ TOTAL Result Count = 0  (0)
+RULECHECK DRC5_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC5_2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC5_3 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC5_4 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC6_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC6_2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC6_3 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC6_4 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC7_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC7_2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC7_3 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC7_4 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC8_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC8_2 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC8_3 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC9_1 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC9_2 .................. TOTAL Result Count = 5  (5)
+RULECHECK DRC9_3 .................. TOTAL Result Count = 0  (0)
+RULECHECK DRC9_4 .................. TOTAL Result Count = 4  (4)
+RULECHECK DRC11_1 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC11_2 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC11_3 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC11_4 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC11_5 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC11_sel ............... TOTAL Result Count = 0  (0)
+RULECHECK DRC12_1 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC12_2 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC13_1 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC13_2 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC13_3 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC13_4 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC13_5 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC14_1 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC14_2 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC14_3 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC15_1 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC15_2 ................. TOTAL Result Count = 4  (4)
+RULECHECK DRC15_3 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC15_4 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC21_1 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC21_2 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC21_3 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC22_1 ................. TOTAL Result Count = 27 (27)
+RULECHECK DRC22_2 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC22_3 ................. TOTAL Result Count = 0  (0)
+RULECHECK DRC22_4 ................. TOTAL Result Count = 0  (0)
+----------------------------------------------------------------------------------
+--- RULECHECK RESULTS STATISTICS (BY CELL)
+---
+CELL DCNNChip ........... TOTAL Result Count = 40 (40)
+    RULECHECK DRC9_2 .... TOTAL Result Count = 5  (5)
+    RULECHECK DRC9_4 .... TOTAL Result Count = 4  (4)
+    RULECHECK DRC15_2 ... TOTAL Result Count = 4  (4)
+    RULECHECK DRC22_1 ... TOTAL Result Count = 27 (27)
+----------------------------------------------------------------------------------
+--- SUMMARY
+---
+TOTAL CPU Time:                  0
+TOTAL REAL Time:                 0
+TOTAL Original Layer Geometries: 1295 (13200)
+TOTAL DRC RuleChecks Executed:   81
+TOTAL DRC Results Generated:     40 (40)
